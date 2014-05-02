@@ -3,29 +3,44 @@
 	android:layout_width="wrap_content"
 	android:layout_height="wrap_content"
 	android:orientation="vertical" >
-
-	<TextView
-		android:id="@+id/row_note_create_date"
-		android:layout_width="wrap_content"
+	<LinearLayout
+		android:id="@+id/row_note_info"
+		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_alignParentTop="true"
-		android:layout_centerHorizontal="true"
-		android:text="2014/04/01 2014/04/01" />
-
+		android:layout_centerHorizontal="true" >
+		<TextView
+			android:id="@+id/row_note_create_date"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="作成日時 2014/04/01" />
+		<TextView
+			android:id="@+id/row_note_update_date"
+			android:layout_width="0dp"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:text="更新日時 2014/04/01" />
+	</LinearLayout>
 	<ImageView
 		android:id="@+id/row_note_image"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_below="@+id/row_note_create_date"
+		android:layout_below="@+id/row_note_info"
 		android:adjustViewBounds="true"
 		android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
-
 	<TextView
 		android:id="@+id/row_note_name"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_below="@+id/row_note_image"
 		android:layout_centerHorizontal="true"
-		android:text="text" />
-
+		android:text="name of note" />
+	<TextView
+		android:id="@+id/row_note_index"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/row_note_name"
+		android:layout_centerHorizontal="true"
+		android:text="index/index" />
 </RelativeLayout>

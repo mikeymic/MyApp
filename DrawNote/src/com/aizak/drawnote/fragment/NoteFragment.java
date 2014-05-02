@@ -1,6 +1,5 @@
 package com.aizak.drawnote.fragment;
 
-
 import android.app.Activity;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -15,6 +14,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
 import android.view.View;
@@ -28,13 +28,14 @@ import android.widget.PopupWindow;
 import com.aizak.drawnote.activity.ActionBarUtil;
 import com.example.drawnote.R;
 
-public class NoteFragment extends Fragment implements OnTouchListener{
+public class NoteFragment extends Fragment implements OnTouchListener {
 
 	private Button pageListButton;
 
 	int currentPage = 2;
 	int pageCount = 10;
 
+	private PopupWindow popupWindow;
 	private boolean isScreenMode;
 
 	/* (非 Javadoc)
@@ -70,12 +71,12 @@ public class NoteFragment extends Fragment implements OnTouchListener{
 
 		@Override
 		public void run() {
-            Rect delegateArea = new Rect();
-            Button delegate = pageListButton;
-            delegate.getHitRect(delegateArea);
-            delegateArea.union(30, 30, 30, 30);
-            TouchDelegate expandedArea = new TouchDelegate(delegateArea, delegate);
-            delegate.setTouchDelegate(expandedArea);
+			Rect delegateArea = new Rect();
+			Button delegate = pageListButton;
+			delegate.getHitRect(delegateArea);
+			delegateArea.union(30, 30, 30, 30);
+			TouchDelegate expandedArea = new TouchDelegate(delegateArea, delegate);
+			delegate.setTouchDelegate(expandedArea);
 		}
 	};
 
@@ -97,7 +98,7 @@ public class NoteFragment extends Fragment implements OnTouchListener{
 		pageListButton = (Button) view.findViewById(R.id.note_button_page_list);
 		pageListButton.setOnClickListener(onClickPageListButton);
 		view.post(setDelegate);
-		createPopUpWindow();
+		popupWindow = createPopUpWindow();
 		return view;
 	}
 
@@ -151,8 +152,10 @@ public class NoteFragment extends Fragment implements OnTouchListener{
 	 */
 	@Override
 	public void onStop() {
-		// TODO 自動生成されたメソッド・スタブ
 		super.onStop();
+		popupWindow.dismiss();
+		ActionBarUtil.actionBarSetVisiblity(getActivity(), View.VISIBLE);
+
 	}
 
 	@Override
@@ -172,35 +175,38 @@ public class NoteFragment extends Fragment implements OnTouchListener{
 		if (isScreenMode) {
 			ActionBarUtil.actionBarSetVisiblity(getActivity(), View.GONE);
 			pageListButton.setVisibility(View.GONE);
+			popupWindow.dismiss();
 		} else {
 			ActionBarUtil.actionBarSetVisiblity(getActivity(), View.VISIBLE);
 			pageListButton.setVisibility(View.VISIBLE);
 		}
 	}
 
-
-	private OnClickListener onClickPageListButton = new OnClickListener() {
+	private final OnClickListener onClickPageListButton = new OnClickListener() {
 
 		@Override
 		public void onClick(View v) {
-			if(popupWindow.isShowing()) {
+			if (popupWindow.isShowing()) {
 				popupWindow.dismiss();
 			} else {
-//				popupWindow.showAsDropDown(pageListButton,0 ,
-//						-(pageListButton.getHeight()*3));
-				popupWindow.showAtLocation(getView(), Gravity.CENTER_HORIZONTAL|Gravity.BOTTOM,
-						0, (pageListButton.getHeight()*2));
-				}
+				popupWindow.showAtLocation(getView(), Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM,
+						0, (pageListButton.getHeight() * 2));
+			}
 		}
 	};
 
-	private PopupWindow popupWindow;
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		isScreenMode = true;
+		OnScreenMode();
+		return true;
+	}
 
 	private View contentView;
 
 	private PopupWindow createPopUpWindow() {
 		contentView = LayoutInflater.from(getActivity()).inflate(R.layout.gridview_row_note, null, false);
-		popupWindow = new PopupWindow(getView());
+		PopupWindow popupWindow = new PopupWindow(getView());
 		popupWindow.setWindowLayoutMode(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		popupWindow.setBackgroundDrawable(new Drawable() {
 
@@ -230,6 +236,6 @@ public class NoteFragment extends Fragment implements OnTouchListener{
 		});
 		popupWindow.setContentView(contentView);
 		return popupWindow;
-		}
+	}
 
 }

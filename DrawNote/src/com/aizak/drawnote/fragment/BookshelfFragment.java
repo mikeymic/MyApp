@@ -3,7 +3,8 @@ package com.aizak.drawnote.fragment;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.GridLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarActivity;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -13,21 +14,33 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
+import android.widget.GridView;
 
 import com.example.drawnote.R;
 
-public class BookshelfFragment extends Fragment implements OnTouchListener{
+public class BookshelfFragment extends Fragment implements OnTouchListener {
 
-	private GridLayout gridLayout;
+	public interface OnNoteClickListener {
+		public void onNoteClicked();
+	}
 
+	OnNoteClickListener noteClickListener;
+
+	private GridView gridView;
 
 	/* (非 Javadoc)
 	 * @see android.support.v4.app.Fragment#onAttach(android.app.Activity)
 	 */
 	@Override
 	public void onAttach(Activity activity) {
-		// TODO 自動生成されたメソッド・スタブ
 		super.onAttach(activity);
+		if ((activity instanceof OnNoteClickListener) == false) {
+			throw new ClassCastException("activity が OnOkBtnClickListener を実装していません.");
+		}
+		noteClickListener = ((OnNoteClickListener) activity);
 	}
 
 	/* (非 Javadoc)
@@ -38,6 +51,7 @@ public class BookshelfFragment extends Fragment implements OnTouchListener{
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
+
 	}
 
 	/* (非 Javadoc)
@@ -46,7 +60,6 @@ public class BookshelfFragment extends Fragment implements OnTouchListener{
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		// TODO 自動生成されたメソッド・スタブ
 		super.onCreateContextMenu(menu, v, menuInfo);
 	}
 
@@ -65,7 +78,16 @@ public class BookshelfFragment extends Fragment implements OnTouchListener{
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_bookshelf, container, false);
-		gridLayout = (GridLayout) view.findViewById(R.id.book_shelf_gridview);
+		gridView = (GridView) view.findViewById(R.id.book_shelf_gridview);
+
+		String[] data = { "note1", " note2", "note3", "note4", "note5", "note6", "note7", "note8", "note9", "note10", };
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.gridview_row_note,
+				R.id.row_note_name, data);
+
+		gridView.setNumColumns(3);
+		gridView.setAdapter(adapter);
+		gridView.setOnItemClickListener(onNoteClicked);
+
 		return view;
 	}
 
@@ -111,8 +133,8 @@ public class BookshelfFragment extends Fragment implements OnTouchListener{
 	@Override
 	public void onStart() {
 		super.onStart();
-		int viewWidth = getView().getWidth();
-		int viewHeight = getView().getHeight();
+		ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
+		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 	}
 
 	/* (非 Javadoc)
@@ -128,5 +150,15 @@ public class BookshelfFragment extends Fragment implements OnTouchListener{
 	public boolean onTouch(View v, MotionEvent event) {
 		return false;
 	}
+
+	private final OnItemClickListener onNoteClicked = new OnItemClickListener() {
+
+		@Override
+		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+			if (noteClickListener != null) {
+				noteClickListener.onNoteClicked();
+			}
+		}
+	};
 
 }
