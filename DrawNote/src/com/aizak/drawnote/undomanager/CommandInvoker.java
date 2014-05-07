@@ -4,8 +4,8 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class CommandInvoker {
-	private Deque<ICommand> undoBuffer;
-	private Deque<ICommand> redoBuffer;
+	private final Deque<ICommand> undoBuffer;
+	private final Deque<ICommand> redoBuffer;
 
 	public CommandInvoker() {
 		undoBuffer = new ArrayDeque<ICommand>();

@@ -1,36 +1,28 @@
 package com.aizak.drawnote.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serializable;
 
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.Point;
 
-public class Line {
+public class Line implements Serializable {
 
-	public List<Point> points;
-	public Path line;
+	private static final long serialVersionUID = 6255752248513019027L;
 
-	public Paint paint;
-	public int strokeWidth;
-	public int color;
+	public CustomPath path;
+	public MyPaint paint;
 
-	public Line(Path line, Paint paint, int strokeWidth, int color) {
-		this.paint = paint;
-		paint.setStrokeWidth(strokeWidth);
-		paint.setColor(color);
-		points = new ArrayList<Point>();
-		this.line = line;
+	public Line() {
+		path = new CustomPath();
+		paint = new MyPaint();
 	}
 
-	public void addPoint(Point point) {
-		points.add(point);
+	public Line(CustomPath path, MyPaint paint) {
+		this.path = new CustomPath(path);
+		this.paint = new MyPaint(paint);
 	}
 
 	public void drawLine(Canvas canvas) {
-		canvas.drawPath(line, paint);
+		canvas.drawPath(path, paint);
 	}
 
 }

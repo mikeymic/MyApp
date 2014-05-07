@@ -10,7 +10,6 @@ public class SettingPrefarenceActivity extends PreferenceActivity {
 
 	PreferenceManager preferenceManager;
 
-
 	/* (非 Javadoc)
 	 * @see android.preference.PreferenceActivity#onCreate(android.os.Bundle)
 	 */
@@ -25,8 +24,6 @@ public class SettingPrefarenceActivity extends PreferenceActivity {
 	 */
 	@Override
 	public void onBuildHeaders(List<Header> target) {
-		// TODO 自動生成されたメソッド・スタブ
-		super.onBuildHeaders(target);
 	}
 
 	/* (非 Javadoc)
@@ -37,8 +34,6 @@ public class SettingPrefarenceActivity extends PreferenceActivity {
 		// TODO 自動生成されたメソッド・スタブ
 		return false;
 	}
-
-
 
 	/* (非 Javadoc)
 	 * @see android.preference.PreferenceActivity#getPreferenceManager()

@@ -97,7 +97,7 @@ public class DrawingView extends View {
 				Log.d("TEST", "through MODE_CLEAR");
 				ICommand command =
 						new AddLineCommand(dataModel,
-								new Line(new Path(), paint, 0, 0));
+								new Line());
 				invoker.clear(command);
 				break;
 			case MODE_UNDO:
@@ -150,7 +150,7 @@ public class DrawingView extends View {
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				aLine = new Path();
-				line = new Line(aLine, paint, 4, Color.GREEN);
+				line = new Line();
 				aLine.moveTo(x, y);
 				break;
 			case MotionEvent.ACTION_MOVE:
