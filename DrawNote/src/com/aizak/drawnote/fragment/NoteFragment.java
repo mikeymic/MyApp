@@ -1,9 +1,11 @@
 package com.aizak.drawnote.fragment;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
@@ -13,11 +15,15 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.TouchDelegate;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 
-import com.example.drawnote.R;
+import com.aizak.drawnote.R;
+import com.aizak.drawnote.activity.C;
+import com.aizak.drawnote.activity.database.DatabaseControl;
 
 /**
  * @author 1218AND
@@ -25,10 +31,16 @@ import com.example.drawnote.R;
  */
 public class NoteFragment extends Fragment implements OnTouchListener {
 
+	Context context;
+
+	DatabaseControl db;
 	private Button pageListButton;
 
 	int currentPageIndex;
 	int pageCount;
+
+	private ImageButton pagePreviousButton;
+	private ImageButton pageNextButton;
 
 	/* (非 Javadoc)
 	 * @see android.support.v4.app.Fragment#onAttach(android.app.Activity)
@@ -36,6 +48,8 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
+		context = activity;
+		db = new DatabaseControl(context);
 	}
 
 	/* (非 Javadoc)
@@ -65,8 +79,25 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		pageListButton = (Button) getView().findViewById(R.id.note_button_page_list);
-		getView().post(setDelegate);
+		String name = getArguments().getString(C.DB.CLM_NOTES_NAME);
+		Log.d("NAME#onActivityCreated", name);
+
+		db.readPage(name, 1);
+		currentPageIndex = 1;
+		pageCount = db.getPageCount(name);
+
+		View v = getView();
+
+		pageListButton = (Button) v.findViewById(R.id.note_button_page_list);
+		pageNextButton = (ImageButton) v.findViewById(R.id.note_button_page_next);
+		pagePreviousButton = (ImageButton) v.findViewById(R.id.note_button_page_previous);
+//		getView().post(setDelegate);
+		pageListButton.setText(String.format(getString(R.string.page_current_index), currentPageIndex, pageCount));
+
+		pageListButton.setOnClickListener(OnCliCKPagesUnit);
+		pageNextButton.setOnClickListener(OnCliCKPagesUnit);
+		pagePreviousButton.setOnClickListener(OnCliCKPagesUnit);
+
 	}
 
 	/* (非 Javadoc)
@@ -169,6 +200,47 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 			delegateArea.union(30, 30, 30, 30);
 			TouchDelegate expandedArea = new TouchDelegate(delegateArea, delegate);
 			delegate.setTouchDelegate(expandedArea);
+		}
+	};
+
+	private final OnClickListener OnCliCKPagesUnit = new OnClickListener() {
+
+		@Override
+		public void onClick(View v) {
+			int id = v.getId();
+			byte[] stream = null;
+			switch (id) {
+				case R.id.note_button_page_list:
+					if (true) {//表示されているなら非表示に
+						//非表示
+					} else {//非表示なら表示する
+						//PopupWindowのShowメソッド
+					}
+					//PopupWindow表示
+					return;
+				case R.id.note_button_page_next:
+					currentPageIndex++;
+					stream = null;
+					//currentpageindexの数でページを検索する
+					if (stream == null) {//ページがなければ新規作成
+						//DBに新しい行をインサート
+					}
+					//デシリアライズ
+					break;
+				case R.id.note_button_page_previous:
+					currentPageIndex--;
+					stream = null;
+					if (currentPageIndex == 1) {
+						//これより前のページはなし
+						//Toast表示
+						return;
+					}
+					//currentpageindexの数でページを検索する
+					//デシリアライズ
+					break;
+			//再描画
+			}
+
 		}
 	};
 

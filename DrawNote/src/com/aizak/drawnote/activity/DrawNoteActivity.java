@@ -14,22 +14,26 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBar.Tab;
 import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.PopupWindow;
 
-import com.aizak.drawnote.activity.database.DatabaseDao;
-import com.aizak.drawnote.activity.database.DatabaseHelper;
+import com.aizak.drawnote.R;
+import com.aizak.drawnote.activity.database.DatabaseControl;
 import com.aizak.drawnote.fragment.BookshelfFragment;
+import com.aizak.drawnote.fragment.BookshelfFragment.OnDBListener;
 import com.aizak.drawnote.fragment.BookshelfFragment.OnNoteClickListener;
 import com.aizak.drawnote.fragment.NoteFragment;
-import com.example.drawnote.R;
 
-public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickListener {
+public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickListener, OnDBListener {
 
 	private final NoteFragment noteFragment = new NoteFragment();
 	private final BookshelfFragment bookshelfFragment = new BookshelfFragment();
+
+	DatabaseControl db = new DatabaseControl(this);
 
 	private View popupNoteListView;
 	private Bitmap Image;
@@ -72,7 +76,11 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 
 	//**-------------------- fragmentからのコールバック --------------------**//
 	@Override
-	public void onNoteClicked() {
+	public void onNoteClicked(String name) {
+		Log.d("NAME#onNoteClicked", name);
+		Bundle bundle = new Bundle();
+		bundle.putString(C.DB.CLM_NOTES_NAME, name);
+		noteFragment.setArguments(bundle);
 		commitNoteFragment();
 	}
 
@@ -139,110 +147,6 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 		mgr.notify(1, notification);
 	}
 
-	//**-------------------- DB操作 --------------------**//
-
-	//ノート//
-	public void createNote() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void updateNote() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void deleteNote() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void readNote() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void readNotes() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	//ページ
-	public void createPage() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void updatePage() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void deletePage() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void readPage() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
-	public void readPages() {
-
-		DatabaseHelper helper = new DatabaseHelper(this);
-		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase(password));
-		/*
-		 * 処理記述
-		 */
-		helper.close();
-	}
-
 	//*------------------ オーバーレイ --------------------*//
 	public void startOverlayService() {
 
@@ -266,6 +170,13 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 
 		startService(intent);
 
+	}
+
+	@Override
+	public void onDBControl(View view, MenuItem item) {
+		if (view == null) {
+			db.createNote();
+		}
 	}
 
 }

@@ -1,8 +1,10 @@
 package com.aizak.drawnote.activity.database;
 
-import net.sqlcipher.database.SQLiteDatabase;
 import android.content.ContentValues;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+
+import com.aizak.drawnote.activity.C;
 
 public class DatabaseDao {
 
@@ -28,24 +30,27 @@ public class DatabaseDao {
 
 	public DatabaseDao(SQLiteDatabase db) {
 		this.db = db;
+		db.execSQL("PRAGMA foreign_keys = true;");//外部キーを有効にする（毎回呼ぶこと）
 	}
 
 	/*--------------------<<<ページ操作> >> -------------------*/
 
 	public void insertNewNote(String name) {
-		db.execSQL("PRAGMA foreign_keys = true;");//外部キーを有効にする（毎回呼ぶこと）
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_NOTES_NAME, name);
-
 		db.insert(C.DB.TABLE_NAME_NOTES, null, values);
 	}
 
 	public void updateNote(int id, String name) {
-		db.execSQL("PRAGMA foreign_keys = true;");//外部キーを有効にする（毎回呼ぶこと）
 		String where = C.DB.CLM_NOTES_ID + " = " + String.valueOf(id);
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_NOTES_NAME, name);
 		db.update(C.DB.TABLE_NAME_NOTES, values, where, null);
+	}
+
+	public Cursor findNotes() {
+		Cursor cursor = db.query(C.DB.TABLE_NAME_NOTES, COLUMNS_NOTES, null, null, null, null, null);
+		return cursor;
 	}
 
 	/*
@@ -53,10 +58,11 @@ public class DatabaseDao {
 	 */
 
 	//ページ数取得
-	public int getPageCount(String name) {
+	public Cursor getPageCount(String name) {
 		String where = C.DB.CLM_PAGES_NAME + " = " + "'" + name + "'";
-		Cursor cursor = db.query(C.DB.TABLE_NAME_PAGES, COLUMNS_PAGES, where, null, null, null, null);
-		return cursor.getCount();
+		Cursor cursor = db.query(C.DB.TABLE_NAME_PAGES, new String[] { C.DB.CLM_PAGES_NAME }, where, null, null, null,
+				null);
+		return cursor;
 	}
 
 	//新規ページ作成
@@ -83,17 +89,12 @@ public class DatabaseDao {
 	}
 
 	//ページ読み込み
-	public byte[] getPage(String name, int index) {
+	public Cursor readPage(String name, int index) {
 		String where =
 				C.DB.CLM_PAGES_NAME + " = " + "'" + name + "'" + " and " +
 						C.DB.CLM_PAGES_INDEX + " = " + String.valueOf(index) + " ;";
 		Cursor cursor = db.query(C.DB.TABLE_NAME_PAGES, COLUMNS_PAGES, where, null, null, null, null);
-
-		byte[] stream = null;
-		while (cursor.moveToNext() != false) {
-			stream = cursor.getBlob(cursor.getColumnIndex(C.DB.CLM_PAGES_LINE));
-		}
-		return stream;
+		return cursor;
 	}
 
 	//削除
