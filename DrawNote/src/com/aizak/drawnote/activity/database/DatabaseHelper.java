@@ -1,10 +1,14 @@
 package com.aizak.drawnote.activity.database;
 
-import net.sqlcipher.database.SQLiteDatabase;
-import net.sqlcipher.database.SQLiteOpenHelper;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+import com.aizak.drawnote.activity.C;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
+
+	private final String password = "test-password";
 
 	private static final int DATABASE_VERSION = 3;
 
@@ -98,6 +102,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
+
 		db.execSQL("PRAGMA foreign_keys = true;");//外部キーを有効にする（毎回呼ぶこと）
 		db.execSQL(CREATE_DATABASE_TABLE_NOTES);
 		db.execSQL(TRIGER_CREATE_NEW_PAGE);
@@ -113,5 +118,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 		db.execSQL(DROP_TABLE_NOTES);
 		db.execSQL(DROP_TABLE_PAGES);
 	}
+
+//	public synchronized SQLiteDatabase getWritableDatabase() {
+//		return super.getWritableDatabase(password);
+//	}
+//
+//	public synchronized SQLiteDatabase getReadableDatabase() {
+//		return super.getReadableDatabase(password);
+//	}
 
 }

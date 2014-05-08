@@ -21,8 +21,8 @@ public class AcceleroListener implements SensorEventListener {
 	private static float DETECT_ACCELERO = 11.0f;
 	private static int DETECT_ACCELERO_COUNT = 3;
 
-	private SensorManager sensorManager;
-	private Context context;
+	private final SensorManager sensorManager;
+	private final Context context;
 	private OnAcceleroListener acceleroListener;
 
 	private int counter;
@@ -56,7 +56,7 @@ public class AcceleroListener implements SensorEventListener {
 		float z = Math.abs(event.values[2]);
 
 		// 加速度が所定値より大きいか判断
-		if (x > DETECT_ACCELERO || y > DETECT_ACCELERO || z > DETECT_ACCELERO) {
+		if ((x > DETECT_ACCELERO) || (y > DETECT_ACCELERO) || (z > DETECT_ACCELERO)) {
 			// 加速度の変化をカウント
 			counter++;
 			if (counter > DETECT_ACCELERO_COUNT) {// 3回カウントされたら（x,y,z）
@@ -65,7 +65,7 @@ public class AcceleroListener implements SensorEventListener {
 						"加速度検知\n" + "X = " + String.valueOf(x) + "\n" + "Y = "
 								+ String.valueOf(y) + "\n" + "Z = "
 								+ String.valueOf(z) + "\n", Toast.LENGTH_SHORT)
-								.show();
+						.show();
 				if (acceleroListener != null) {
 					acceleroListener.onAccelero();
 				}

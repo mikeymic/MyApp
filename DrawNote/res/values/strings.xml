@@ -2,7 +2,7 @@
 <resources>
 	<string name="app_name">DrawNote</string>
 	<string name="action_settings">Settings</string>
-	<string name="note_current_page">%1$d / %2$d</string>
+	<string name="page_current_index">%1$d / %2$d</string>
 	<string name="note_info_create_date">作成日時 : %1$s</string>
 	<string name="note_info_update_date">更新日時 : %1$s</string>
 	<string name="note_info_name">Title : %1$s</string>

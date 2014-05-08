@@ -3,11 +3,9 @@
 	android:id="@+id/fragment_note"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent" >
-
 	<com.aizak.drawnote.view.DrawingView
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
-
 	<Button
 		android:id="@+id/note_button_page_list"
 		android:layout_width="wrap_content"
@@ -15,6 +13,19 @@
 		android:layout_alignParentBottom="true"
 		android:layout_centerHorizontal="true"
 		android:layout_marginBottom="20dp"
-		android:text="@string/note_current_page" />
-
+		android:text="@string/page_current_index" />
+	<ImageButton
+		android:id="@+id/note_button_page_next"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignTop="@+id/note_button_page_list"
+		android:layout_toRightOf="@+id/note_button_page_list"
+		android:src="@android:drawable/ic_media_next" />
+	<ImageButton
+		android:id="@+id/note_button_page_previous"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignTop="@+id/note_button_page_list"
+		android:layout_toLeftOf="@+id/note_button_page_list"
+		android:src="@android:drawable/ic_media_previous" />
 </RelativeLayout>

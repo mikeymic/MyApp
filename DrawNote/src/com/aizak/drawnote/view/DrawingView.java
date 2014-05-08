@@ -11,8 +11,6 @@ import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
 import android.graphics.Paint.Style;
-import android.graphics.Path;
-import android.graphics.Point;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -35,11 +33,6 @@ public class DrawingView extends View {
 	DataModel dataModel;
 	CommandInvoker invoker;
 	Line line;
-
-	Path aLine;
-	Point point;
-
-	private Paint paint;
 
 	private Paint bmpFilter;
 
@@ -64,8 +57,6 @@ public class DrawingView extends View {
 	private void init() {
 		dataModel = new DataModel();
 		invoker = new CommandInvoker();
-
-		paint = createPaint();
 
 		bmpFilter = new Paint();
 		bmpFilter.setFilterBitmap(true);
@@ -149,17 +140,13 @@ public class DrawingView extends View {
 
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
-				aLine = new Path();
 				line = new Line();
-				aLine.moveTo(x, y);
 				break;
 			case MotionEvent.ACTION_MOVE:
 				for (int i = 0; i < size; i++) {
 					float hisX = event.getHistoricalX(i);
 					float hisY = event.getHistoricalY(i);
-					aLine.lineTo(hisX, hisY);
 				}
-				aLine.lineTo(x, y);
 				break;
 			case MotionEvent.ACTION_UP:
 				ICommand command = new AddLineCommand(dataModel, line);

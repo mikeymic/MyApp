@@ -1,35 +1,54 @@
 package com.aizak.drawnote.fragment;
 
 import android.app.Activity;
+import android.content.Context;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager.LoaderCallbacks;
+import android.support.v4.content.Loader;
+import android.support.v4.widget.SimpleCursorAdapter;
+import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.GridView;
+import android.widget.TextView;
 
-import com.example.drawnote.R;
+import com.aizak.drawnote.R;
+import com.aizak.drawnote.activity.C;
+import com.aizak.drawnote.activity.database.MyCursorLoader;
 
-public class BookshelfFragment extends Fragment implements OnTouchListener {
+public class BookshelfFragment extends Fragment implements OnTouchListener, LoaderCallbacks<Cursor> {
 
 	public interface OnNoteClickListener {
-		public void onNoteClicked();
+		public void onNoteClicked(String name);
 	}
 
-	OnNoteClickListener noteClickListener;
+	public interface OnDBListener {
+		public void onDBControl(View view, MenuItem item);
+	}
+
+	private Context context;
+	private View view;
 
 	private GridView gridView;
+	private SimpleCursorAdapter cursorAdapter;
+
+	private OnDBListener dbListener;
+	private OnNoteClickListener noteClickListener;
 
 	/* (非 Javadoc)
 	 * @see android.support.v4.app.Fragment#onAttach(android.app.Activity)
@@ -38,9 +57,15 @@ public class BookshelfFragment extends Fragment implements OnTouchListener {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		if ((activity instanceof OnNoteClickListener) == false) {
-			throw new ClassCastException("activity が OnOkBtnClickListener を実装していません.");
+			throw new ClassCastException("activity が OnNoteClickListener を実装していません.");
 		}
-		noteClickListener = ((OnNoteClickListener) activity);
+		else if ((activity instanceof OnNoteClickListener) == false) {
+			throw new ClassCastException("activity が OnDBListener を実装していません.");
+		}
+		noteClickListener = (OnNoteClickListener) activity;
+		dbListener = (OnDBListener) activity;
+		context = activity;
+
 	}
 
 	/* (非 Javadoc)
@@ -69,6 +94,24 @@ public class BookshelfFragment extends Fragment implements OnTouchListener {
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.bookshelf, menu);
+
+	}
+
+	/* (非 Javadoc)
+	 * @see android.support.v4.app.Fragment#onContextItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onContextItemSelected(MenuItem item) {
+		return super.onContextItemSelected(item);
+	}
+
+	/* (非 Javadoc)
+	 * @see android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
+	 */
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		dbListener.onDBControl(null, item);
+		return super.onOptionsItemSelected(item);
 	}
 
 	/* (非 Javadoc)
@@ -78,17 +121,22 @@ public class BookshelfFragment extends Fragment implements OnTouchListener {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		View view = inflater.inflate(R.layout.fragment_bookshelf, container, false);
-		gridView = (GridView) view.findViewById(R.id.book_shelf_gridview);
-
-		String[] data = { "note1", " note2", "note3", "note4", "note5", "note6", "note7", "note8", "note9", "note10", };
-		ArrayAdapter<String> adapter = new ArrayAdapter<String>(getActivity(), R.layout.gridview_row_note,
-				R.id.row_note_name, data);
-
-		gridView.setNumColumns(3);
-		gridView.setAdapter(adapter);
-		gridView.setOnItemClickListener(onNoteClicked);
-
 		return view;
+	}
+
+	/* (非 Javadoc)
+	 * @see android.support.v4.app.Fragment#onActivityCreated(android.os.Bundle)
+	 */
+	@Override
+	public void onActivityCreated(Bundle savedInstanceState) {
+		super.onActivityCreated(savedInstanceState);
+		gridView = (GridView) getView().findViewById(R.id.book_shelf_gridview);
+		cursorAdapter = new SimpleCursorAdapter(context, R.layout.gridview_row_note, null, C.GCS.from, C.GCS.to, 0);
+		gridView.setNumColumns(3);
+		gridView.setOnItemClickListener(OnClickNote);
+		gridView.setAdapter(cursorAdapter);
+		cursorAdapter.setViewBinder(viewBinder);
+		getLoaderManager().initLoader(0, null, this);
 	}
 
 	/* (非 Javadoc)
@@ -131,7 +179,7 @@ public class BookshelfFragment extends Fragment implements OnTouchListener {
 	 * @see android.support.v4.app.Fragment#onStart()
 	 */
 	@Override
-	public void onStart() {
+	public void onStart() { //getLoaderManagerが呼ばれているなら、ここからLoaderManagerのライフサイクル開始
 		super.onStart();
 		ActionBar actionBar = ((ActionBarActivity) getActivity()).getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -142,7 +190,6 @@ public class BookshelfFragment extends Fragment implements OnTouchListener {
 	 */
 	@Override
 	public void onStop() {
-		// TODO 自動生成されたメソッド・スタブ
 		super.onStop();
 	}
 
@@ -151,14 +198,40 @@ public class BookshelfFragment extends Fragment implements OnTouchListener {
 		return false;
 	}
 
-	private final OnItemClickListener onNoteClicked = new OnItemClickListener() {
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		MyCursorLoader cursorLoader = new MyCursorLoader(context);
+		return cursorLoader;
+	}
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+		cursorAdapter.swapCursor(cursor);
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> loaderr) {
+		cursorAdapter.swapCursor(null);
+
+	}
+
+	private final ViewBinder viewBinder = new ViewBinder() {
 
 		@Override
-		public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-			if (noteClickListener != null) {
-				noteClickListener.onNoteClicked();
-			}
+		public boolean setViewValue(View view, Cursor cursor, int arg2) {
+			// TODO 自動生成されたメソッド・スタブ
+			return false;
 		}
 	};
 
+	private final OnItemClickListener OnClickNote = new OnItemClickListener() {
+
+		@Override
+		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+			TextView textName = (TextView) view.findViewById(R.id.row_note_name);
+			String name = textName.getText().toString();
+			Log.d("NAME#onItemClick", name);
+			noteClickListener.onNoteClicked(name);
+		}
+	};
 }
