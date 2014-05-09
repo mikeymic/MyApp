@@ -3,7 +3,7 @@ package com.aizak.drawnote.fragment.handler;
 import android.content.Context;
 import android.widget.Toast;
 
-public class ActionSettingHandler implements OptionItemActionHander<Void> {
+public class OptionSettingHandler implements ItemActionHander<Void> {
 
 	@Override
 	public boolean handle(Context context, Void entity) {

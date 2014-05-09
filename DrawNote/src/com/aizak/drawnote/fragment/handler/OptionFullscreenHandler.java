@@ -7,7 +7,7 @@ import android.widget.Toast;
 
 import com.aizak.drawnote.activity.ActionBarUtil;
 
-public class ActionFullscreenHandler implements OptionItemActionHander<View> {
+public class OptionFullscreenHandler implements ItemActionHander<View> {
 
 	@Override
 	public boolean handle(Context context, View entity) {

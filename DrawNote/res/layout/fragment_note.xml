@@ -12,7 +12,7 @@
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
 		android:layout_centerHorizontal="true"
-		android:layout_marginBottom="20dp"
+		android:layout_marginBottom="@dimen/page_list_button_margin"
 		android:text="@string/page_current_index" />
 	<ImageButton
 		android:id="@+id/note_button_page_next"

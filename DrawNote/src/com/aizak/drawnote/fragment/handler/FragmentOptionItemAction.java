@@ -6,14 +6,14 @@ import com.aizak.drawnote.R;
 
 public enum FragmentOptionItemAction {
 
-	ACTION_SETTING(R.id.action_settings, new ActionSettingHandler()),
-	ACTION_FULLSCREEN(R.id.action_fullscreen, new ActionFullscreenHandler()),
+	ACTION_SETTING(R.id.action_settings, new OptionSettingHandler()),
+	ACTION_FULLSCREEN(R.id.action_fullscreen, new OptionFullscreenHandler()),
 	UNKNOWN(-1, new UnknownActionHandler());
 
 	private final int menuId;
-	private final OptionItemActionHander handler;
+	private final ItemActionHander handler;
 
-	private FragmentOptionItemAction(final int menuId, final OptionItemActionHander handler) {
+	private FragmentOptionItemAction(final int menuId, final ItemActionHander handler) {
 		this.menuId = menuId;
 		this.handler = handler;
 	}
@@ -31,7 +31,7 @@ public enum FragmentOptionItemAction {
 		return menuId;
 	}
 
-	public OptionItemActionHander getHander() {
+	public ItemActionHander getHander() {
 		return handler;
 	}
 

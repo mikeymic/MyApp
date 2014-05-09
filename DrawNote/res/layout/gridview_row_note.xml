@@ -24,9 +24,10 @@
 	</LinearLayout>
 	<ImageView
 		android:id="@+id/row_note_image"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
+		android:layout_width="250dp"
+		android:layout_height="400dp"
 		android:layout_below="@+id/row_note_info"
+		android:layout_centerInParent="true"
 		android:adjustViewBounds="true"
 		android:src="@drawable/abc_ab_bottom_solid_dark_holo" />
 	<TextView
