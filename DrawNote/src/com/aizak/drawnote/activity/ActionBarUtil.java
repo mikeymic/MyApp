@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 
 public class ActionBarUtil {
 
-	public static boolean isVisible = false;
+	public static boolean isVisible = true;
 
 	public static <T extends View> List<T> findViewsWithClass(View v,
 			Class<T> clazz) {
@@ -41,34 +41,35 @@ public class ActionBarUtil {
 	public static void actionBarSetVisiblity(Activity activity, int visiblity) {
 		View root = activity.getWindow().getDecorView();
 		List<View> views = ActionBarUtil.findViewsWithClassName(root, "com.android.internal.widget.ActionBarContainer");
-		for(View v : views){
-		  v.setVisibility(visiblity);
+		for (View v : views) {
+			v.setVisibility(visiblity);
 		}
 		if (visiblity == View.VISIBLE) {
 			isVisible = true;
-		} else if (visiblity == View.INVISIBLE || visiblity == View.GONE) {
+		} else if ((visiblity == View.INVISIBLE) || (visiblity == View.GONE)) {
 			isVisible = false;
 		}
 	}
 
 	public final static void actionBarUpsideDown(Activity activity) {
-		  View root = activity.getWindow().getDecorView();
-		  View firstChild = ((ViewGroup) root).getChildAt(0);
-		  if (firstChild instanceof ViewGroup) {
-		   ViewGroup viewGroup = (ViewGroup) firstChild;
-		   List<View> views = ActionBarUtil.findViewsWithClassName(root, "com.android.internal.widget.ActionBarContainer");
-		   if (!views.isEmpty()) {
-		    for (View vv : views) {
-		     viewGroup.removeView(vv);
-		    }
-		    for (View vv : views) {
-		     viewGroup.addView(vv);
-		    }
-		   }
-		  }
-		  else{
-		   Log.e("TAG", "first child is not ViewGroup.");
-		  }
-		 }
+		View root = activity.getWindow().getDecorView();
+		View firstChild = ((ViewGroup) root).getChildAt(0);
+		if (firstChild instanceof ViewGroup) {
+			ViewGroup viewGroup = (ViewGroup) firstChild;
+			List<View> views = ActionBarUtil.findViewsWithClassName(root,
+					"com.android.internal.widget.ActionBarContainer");
+			if (!views.isEmpty()) {
+				for (View vv : views) {
+					viewGroup.removeView(vv);
+				}
+				for (View vv : views) {
+					viewGroup.addView(vv);
+				}
+			}
+		}
+		else {
+			Log.e("TAG", "first child is not ViewGroup.");
+		}
+	}
 
- }
+}

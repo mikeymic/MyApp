@@ -108,7 +108,7 @@ public class DrawingView extends View {
 		switch (drawMode) {
 			case MODE_CLEAR:
 				Log.d("TEST", "through MODE_CLEAR2");
-				bmpCanvas.drawColor(Color.BLUE);
+//				bmpCanvas.drawColor(Color.BLUE);
 				break;
 			case MODE_DRAW:
 				line.drawLine(bmpCanvas);

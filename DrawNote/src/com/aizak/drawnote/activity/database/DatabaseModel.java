@@ -6,11 +6,11 @@ import android.widget.Toast;
 
 import com.aizak.drawnote.activity.C;
 
-public class DatabaseControl {
+public class DatabaseModel {
 
 	private final Context context;
 
-	public DatabaseControl(Context context) {
+	public DatabaseModel(Context context) {
 		this.context = context;
 	}
 
@@ -48,14 +48,12 @@ public class DatabaseControl {
 		helper.close();
 	}
 
-	public void readNote() {
-
+	public Cursor readNote() {
 		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
-		/*
-		 * 処理記述
-		 */
-		helper.close();
+		Cursor cursor = dao.findNotes();
+//		helper.close();
+		return cursor;
 	}
 
 	public void readNotes() {

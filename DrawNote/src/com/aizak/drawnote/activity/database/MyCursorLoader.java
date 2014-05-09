@@ -5,15 +5,16 @@ import android.database.Cursor;
 
 public class MyCursorLoader extends SimpleCursorLoader {
 
+	Context context;
+
 	public MyCursorLoader(Context context) {
 		super(context);
+		this.context = context;
 	}
 
 	@Override
 	public Cursor loadInBackground() {
-		DatabaseHelper helper = new DatabaseHelper(getContext());
-		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
-		Cursor cursor = dao.findNotes();
-		return cursor;
+		DatabaseModel db = new DatabaseModel(context);
+		return db.readNote();
 	}
 }

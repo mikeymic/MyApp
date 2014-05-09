@@ -22,8 +22,10 @@ import android.widget.Button;
 import android.widget.ImageButton;
 
 import com.aizak.drawnote.R;
+import com.aizak.drawnote.activity.ActionBarUtil;
 import com.aizak.drawnote.activity.C;
-import com.aizak.drawnote.activity.database.DatabaseControl;
+import com.aizak.drawnote.activity.database.DatabaseModel;
+import com.aizak.drawnote.fragment.handler.FragmentOptionItemAction;
 
 /**
  * @author 1218AND
@@ -33,7 +35,7 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 
 	Context context;
 
-	DatabaseControl db;
+	DatabaseModel db;
 	private Button pageListButton;
 
 	int currentPageIndex;
@@ -49,7 +51,7 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		context = activity;
-		db = new DatabaseControl(context);
+		db = new DatabaseModel(context);
 	}
 
 	/* (非 Javadoc)
@@ -123,27 +125,19 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		return true;
-
-		//フルスクリーンボタンの場合フルスクリーン開始
-		//フルスクリーン開始後、ツールポップアップを（表示）[onTouchEventにて表示／非表示の切り替え]
-
+		//処理内容はハンドラ―に記述
+		//処理追加の際は、新しくハンドラ―を作成、FragmentOptionItemActionの列挙型に追加すること
+		FragmentOptionItemAction action = FragmentOptionItemAction.valueOf(item);
+		return action.getHander().handle(getActivity(), getView()) || super.onOptionsItemSelected(item);
 	}
 
 	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onDestroy()
+	 * @see android.support.v4.app.Fragment#onDestroyView()
 	 */
 	@Override
-	public void onDestroy() {
-		super.onDestroy();
-	}
-
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onDetach()
-	 */
-	@Override
-	public void onDetach() {
-		super.onDetach();
+	public void onDestroyView() {
+		super.onDestroyView();
+		ActionBarUtil.actionBarSetVisiblity(getActivity(), View.VISIBLE);//後でActivityに移動
 	}
 
 	/* (非 Javadoc)

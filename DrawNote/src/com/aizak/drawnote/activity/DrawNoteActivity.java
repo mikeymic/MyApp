@@ -22,7 +22,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.PopupWindow;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.database.DatabaseControl;
+import com.aizak.drawnote.activity.database.DatabaseModel;
 import com.aizak.drawnote.fragment.BookshelfFragment;
 import com.aizak.drawnote.fragment.BookshelfFragment.OnDBListener;
 import com.aizak.drawnote.fragment.BookshelfFragment.OnNoteClickListener;
@@ -33,7 +33,7 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 	private final NoteFragment noteFragment = new NoteFragment();
 	private final BookshelfFragment bookshelfFragment = new BookshelfFragment();
 
-	DatabaseControl db = new DatabaseControl(this);
+	DatabaseModel db = new DatabaseModel(this);
 
 	private View popupNoteListView;
 	private Bitmap Image;
@@ -62,6 +62,7 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 		actionBar.addTab(actionBar.newTab().setText("Create").setTabListener(onTabClicked));
 		actionBar.addTab(actionBar.newTab().setText("Tmplate").setTabListener(onTabClicked));
 		actionBar.addTab(actionBar.newTab().setText("Trash").setTabListener(onTabClicked));
+
 	}
 
 	private void commitNoteFragment() {
