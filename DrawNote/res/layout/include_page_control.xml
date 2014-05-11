@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:orientation="horizontal" >
+
+	<ImageButton
+		android:id="@+id/note_button_page_previous"
+		android:layout_width="30dp"
+		android:layout_height="30dp"
+		android:src="@android:drawable/ic_media_previous" />
+
+	<Button
+		android:id="@+id/note_button_page_list"
+		android:layout_width="60dp"
+		android:layout_height="30dp"
+		android:text="@string/page_current_index"
+		android:textSize="@dimen/font_size" />
+
+	<ImageButton
+		android:id="@+id/note_button_page_next"
+		android:layout_width="30dp"
+		android:layout_height="30dp"
+		android:src="@android:drawable/ic_media_next" >
+	</ImageButton>
+
+</LinearLayout>

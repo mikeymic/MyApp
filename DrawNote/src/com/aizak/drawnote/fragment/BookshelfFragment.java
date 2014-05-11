@@ -29,25 +29,25 @@ import android.widget.TextView;
 
 import com.aizak.drawnote.R;
 import com.aizak.drawnote.activity.C;
+import com.aizak.drawnote.activity.FindViewByIdS;
+import com.aizak.drawnote.activity.database.DBModel;
 import com.aizak.drawnote.activity.database.MyCursorLoader;
 
-public class BookshelfFragment extends Fragment implements OnTouchListener, LoaderCallbacks<Cursor> {
+public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouchListener, LoaderCallbacks<Cursor> {
 
 	public interface OnNoteClickListener {
 		public void onNoteClicked(String name);
 	}
 
-	public interface OnDBListener {
-		public void onDBControl(View view, MenuItem item);
-	}
 
+	DBModel db;
 	private Context context;
 	private View view;
 
 	private GridView gridView;
 	private SimpleCursorAdapter cursorAdapter;
 
-	private OnDBListener dbListener;
+
 	private OnNoteClickListener noteClickListener;
 
 	/* (非 Javadoc)
@@ -63,8 +63,8 @@ public class BookshelfFragment extends Fragment implements OnTouchListener, Load
 			throw new ClassCastException("activity が OnDBListener を実装していません.");
 		}
 		noteClickListener = (OnNoteClickListener) activity;
-		dbListener = (OnDBListener) activity;
 		context = activity;
+		db = new DBModel(activity);
 
 	}
 
@@ -110,7 +110,7 @@ public class BookshelfFragment extends Fragment implements OnTouchListener, Load
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		dbListener.onDBControl(null, item);
+		db.insertNewNote();
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -224,6 +224,7 @@ public class BookshelfFragment extends Fragment implements OnTouchListener, Load
 		}
 	};
 
+
 	private final OnItemClickListener OnClickNote = new OnItemClickListener() {
 
 		@Override
@@ -234,4 +235,10 @@ public class BookshelfFragment extends Fragment implements OnTouchListener, Load
 			noteClickListener.onNoteClicked(name);
 		}
 	};
+
+
+	@Override
+	public <T extends View> T findViewByIdS(int id) {
+		return (T)getActivity().findViewById(id);
+	}
 }

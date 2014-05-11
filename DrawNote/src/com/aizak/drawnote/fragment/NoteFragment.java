@@ -1,5 +1,7 @@
 package com.aizak.drawnote.fragment;
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
@@ -19,42 +21,91 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 import com.aizak.drawnote.R;
 import com.aizak.drawnote.activity.ActionBarUtil;
 import com.aizak.drawnote.activity.C;
-import com.aizak.drawnote.activity.database.DatabaseModel;
-import com.aizak.drawnote.fragment.handler.FragmentOptionItemAction;
+import com.aizak.drawnote.activity.DrawNoteActivity;
+import com.aizak.drawnote.activity.FindViewByIdS;
+import com.aizak.drawnote.activity.database.DBModel;
+import com.aizak.drawnote.activity.database.SerializeManager;
+import com.aizak.drawnote.fragment.BookshelfFragment.OnNoteClickListener;
+import com.aizak.drawnote.model.Line;
+import com.aizak.drawnote.view.DrawingView;
+import com.aizak.drawnote.view.MyPopupWindow;
 
 /**
  * @author 1218AND
- * 
+ *
  */
-public class NoteFragment extends Fragment implements OnTouchListener {
+public class NoteFragment extends Fragment implements FindViewByIdS,
+		OnTouchListener {
 
-	Context context;
+	public interface OnDeserializeListener {
+		public void onDeserialize(byte[] stream);
+	}
 
-	DatabaseModel db;
+	private OnDeserializeListener deserializeListener;
+
+	private DrawNoteActivity activity;
+	private Context context;
+
+	private DBModel db;
+
+	private String currentNoteName;
+	private int currentPageIndex;
+	private int pageCount;
+
+	private RelativeLayout toolControl;
+	private LinearLayout pageControl;
 	private Button pageListButton;
 
-	int currentPageIndex;
-	int pageCount;
+	private DrawingView drawingView;
+	private MyPopupWindow popupWindow;
 
-	private ImageButton pagePreviousButton;
-	private ImageButton pageNextButton;
+	private boolean isScreenMode = false;
 
-	/* (非 Javadoc)
+	private ArrayList<Line> lines;
+
+	/*
+	 * (非 Javadoc)
+	 *
+	 * @see
+	 * android.support.v4.app.Fragment#onSaveInstanceState(android.os.Bundle)
+	 */
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+	}
+
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onAttach(android.app.Activity)
 	 */
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		context = activity;
-		db = new DatabaseModel(context);
+		db = new DBModel(context);
+		popupWindow = new MyPopupWindow(context);
+		if (activity instanceof DrawNoteActivity) {
+			this.activity = (DrawNoteActivity) activity;
+		}
+
+		if ((activity instanceof OnNoteClickListener) == false) {
+			throw new ClassCastException("activity が OnDBListener を実装していません.");
+		}
+		deserializeListener = (OnDeserializeListener) activity;
+		context = activity;
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onCreate(android.os.Bundle)
 	 */
 	@Override
@@ -62,11 +113,14 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 		super.onCreate(savedInstanceState);
 		setHasOptionsMenu(true);
 		setRetainInstance(true);
-
 	}
 
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onCreateView(android.view.LayoutInflater, android.view.ViewGroup, android.os.Bundle)
+	/*
+	 * (非 Javadoc)
+	 *
+	 * @see
+	 * android.support.v4.app.Fragment#onCreateView(android.view.LayoutInflater,
+	 * android.view.ViewGroup, android.os.Bundle)
 	 */
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -75,80 +129,133 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 		return view;
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onActivityCreated(android.os.Bundle)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+		drawingView = findViewByIdS(R.id.drawing_view);
+
 		String name = getArguments().getString(C.DB.CLM_NOTES_NAME);
-		Log.d("NAME#onActivityCreated", name);
-
-		db.readPage(name, 1);
-		currentPageIndex = 1;
+		currentNoteName = name;
 		pageCount = db.getPageCount(name);
+		currentPageIndex = 1;
 
-		View v = getView();
+		lines = drawingView.lines;
+		getPage();
 
-		pageListButton = (Button) v.findViewById(R.id.note_button_page_list);
-		pageNextButton = (ImageButton) v.findViewById(R.id.note_button_page_next);
-		pagePreviousButton = (ImageButton) v.findViewById(R.id.note_button_page_previous);
-//		getView().post(setDelegate);
-		pageListButton.setText(String.format(getString(R.string.page_current_index), currentPageIndex, pageCount));
+		setPageControl();
+		setToolControl();
+		// getView().post(setDelegate);
 
-		pageListButton.setOnClickListener(OnCliCKPagesUnit);
-		pageNextButton.setOnClickListener(OnCliCKPagesUnit);
-		pagePreviousButton.setOnClickListener(OnCliCKPagesUnit);
+		updatePageIndex();
 
+		drawingView.invalidate();
 	}
 
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onCreateContextMenu(android.view.ContextMenu, android.view.View, android.view.ContextMenu.ContextMenuInfo)
+	/*
+	 * (非 Javadoc)
+	 *
+	 * @see
+	 * android.support.v4.app.Fragment#onCreateContextMenu(android.view.ContextMenu
+	 * , android.view.View, android.view.ContextMenu.ContextMenuInfo)
 	 */
 	@Override
 	public void onCreateContextMenu(ContextMenu menu, View v,
 			ContextMenuInfo menuInfo) {
-		// TODO 自動生成されたメソッド・スタブ
 		super.onCreateContextMenu(menu, v, menuInfo);
 	}
 
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onCreateOptionsMenu(android.view.Menu, android.view.MenuInflater)
+	/*
+	 * (非 Javadoc)
+	 *
+	 * @see
+	 * android.support.v4.app.Fragment#onCreateOptionsMenu(android.view.Menu,
+	 * android.view.MenuInflater)
 	 */
 	@Override
 	public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
 		inflater.inflate(R.menu.note, menu);
 	}
 
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
+	/*
+	 * (非 Javadoc)
+	 *
+	 * @see
+	 * android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem
+	 * )
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		//処理内容はハンドラ―に記述
-		//処理追加の際は、新しくハンドラ―を作成、FragmentOptionItemActionの列挙型に追加すること
-		FragmentOptionItemAction action = FragmentOptionItemAction.valueOf(item);
-		return action.getHander().handle(getActivity(), getView()) || super.onOptionsItemSelected(item);
+		savePage();
+
+		int id = item.getItemId();
+		switch (id) {
+		case R.id.action_insert_new_page:
+			if (currentPageIndex < pageCount) {
+				db.updatePageIndexWhenInsert(currentNoteName, currentPageIndex, pageCount);
+			} else {
+				currentPageIndex++;
+			}
+			db.insertNewPage(currentNoteName, currentPageIndex);
+			updatePageInformation();
+			break;
+		case R.id.action_delete_page:
+			db.deletePage(currentNoteName, currentPageIndex);
+			if (currentPageIndex < pageCount) {
+				db.updatePageIndexWhenDelete(currentNoteName, currentPageIndex,
+						pageCount);
+			}
+			updatePageInformation();
+			break;
+		case R.id.action_fullscreen:
+			ActionBarUtil.actionBarSetVisiblity(getActivity(), View.GONE);
+			pageControl.setVisibility(View.GONE);
+			toolControl.setVisibility(View.VISIBLE);
+			isScreenMode = true;
+			break;
+		case R.id.action_settings:
+			break;
+		default:
+			return false;
+		}
+		drawingView.invalidate();
+		return true;
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onDestroyView()
 	 */
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
-		ActionBarUtil.actionBarSetVisiblity(getActivity(), View.VISIBLE);//後でActivityに移動
+		if (isScreenMode) {
+			ActionBarUtil.actionBarSetVisiblity(getActivity(), View.VISIBLE);// 後でActivityに移動
+		}
 	}
 
-	/* (非 Javadoc)
+
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onPause()
 	 */
 	@Override
 	public void onPause() {
 		super.onPause();
+		savePage();
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onResume()
 	 */
 	@Override
@@ -156,7 +263,9 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 		super.onResume();
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onStart()
 	 */
 	@Override
@@ -164,18 +273,26 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 		super.onStart();
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onStop()
 	 */
 	@Override
 	public void onStop() {
 		super.onStop();
-
-		//フルスクリーン解除
+		if (isScreenMode) {
+			ActionBarUtil.actionBarSetVisiblity(getActivity(), View.VISIBLE);
+		}
+		savePage();
+		Log.d("TEST", "NoteFragment#onStop");
 	}
 
-	/* (非 Javadoc)
-	 * @see android.view.View.OnTouchListener#onTouch(android.view.View, android.view.MotionEvent)
+	/*
+	 * (非 Javadoc)
+	 *
+	 * @see android.view.View.OnTouchListener#onTouch(android.view.View,
+	 * android.view.MotionEvent)
 	 */
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
@@ -183,7 +300,7 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 		return false;
 	}
 
-	//** Delegeteの設定**//
+	// ** Delegeteの設定**//
 	private final Runnable setDelegate = new Runnable() {
 
 		@Override
@@ -192,50 +309,138 @@ public class NoteFragment extends Fragment implements OnTouchListener {
 			Button delegate = pageListButton;
 			delegate.getHitRect(delegateArea);
 			delegateArea.union(30, 30, 30, 30);
-			TouchDelegate expandedArea = new TouchDelegate(delegateArea, delegate);
+			TouchDelegate expandedArea = new TouchDelegate(delegateArea,
+					delegate);
 			delegate.setTouchDelegate(expandedArea);
 		}
 	};
 
-	private final OnClickListener OnCliCKPagesUnit = new OnClickListener() {
+	private final OnClickListener OnClickPagesUnit = new OnClickListener() {
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public void onClick(View v) {
+			savePage();
+			String msg = null;
+			int id = v.getId();
+			switch (id) {
+			case R.id.note_button_page_next:
+				if (currentPageIndex == pageCount) {
+					msg = activity.getString(R.string.msg_no_next_page);
+					break;
+				}
+				currentPageIndex++;
+				break;
+
+			case R.id.note_button_page_previous:
+				if (currentPageIndex == 1) {
+					msg = activity.getString(R.string.msg_no_previous_page);
+					break;
+				}
+				currentPageIndex--;
+				break;
+			}
+
+			if (msg != null) {
+				Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show();
+			}
+
+			updatePageInformation();
+
+		}
+	};
+
+	private OnClickListener OnClickToolControl = new OnClickListener() {
 
 		@Override
 		public void onClick(View v) {
 			int id = v.getId();
-			byte[] stream = null;
 			switch (id) {
-				case R.id.note_button_page_list:
-					if (true) {//表示されているなら非表示に
-						//非表示
-					} else {//非表示なら表示する
-						//PopupWindowのShowメソッド
-					}
-					//PopupWindow表示
-					return;
-				case R.id.note_button_page_next:
-					currentPageIndex++;
-					stream = null;
-					//currentpageindexの数でページを検索する
-					if (stream == null) {//ページがなければ新規作成
-						//DBに新しい行をインサート
-					}
-					//デシリアライズ
-					break;
-				case R.id.note_button_page_previous:
-					currentPageIndex--;
-					stream = null;
-					if (currentPageIndex == 1) {
-						//これより前のページはなし
-						//Toast表示
-						return;
-					}
-					//currentpageindexの数でページを検索する
-					//デシリアライズ
-					break;
-			//再描画
+			case R.id.tool_fullscreen:
+				ActionBarUtil
+						.actionBarSetVisiblity(getActivity(), View.VISIBLE);
+				pageControl.setVisibility(View.VISIBLE);
+				toolControl.setVisibility(View.GONE);
+				isScreenMode = false;
+				break;
+			case R.id.tool_color:
+
+				break;
+			case R.id.tool_editer:
+
+				break;
+			case R.id.tool_pen:
+
+				break;
+			case R.id.tool_shepe:
+
+				break;
+
+			default:
+				break;
 			}
 
 		}
 	};
+
+	public void updatePageInformation() {
+		getPage();
+		updatePageIndex();
+
+		drawingView.drawMode = drawingView.MODE_CLEAR;
+		drawingView.invalidate();
+	}
+
+	public void savePage() {
+		byte[] stream = SerializeManager.serializeData(lines);
+		db.updatePage(currentNoteName, currentPageIndex, stream);
+	}
+
+	public void getPage() {
+		if (lines != null) {
+			lines.clear();
+		}
+		byte[] stream = db.getPage(currentNoteName, currentPageIndex);
+		if (stream != null) {
+			lines.addAll((ArrayList<Line>) SerializeManager
+					.deserializeData(stream));
+		} else {
+			lines.clear();
+		}
+	}
+
+	public void setPageControl() {
+		pageControl = findViewByIdS(R.id.page_control);
+		pageListButton = findViewByIdS(R.id.note_button_page_list);
+		pageListButton.setOnClickListener(OnClickPagesUnit);
+		findViewByIdS(R.id.note_button_page_previous).setOnClickListener(
+				OnClickPagesUnit);
+		findViewByIdS(R.id.note_button_page_next).setOnClickListener(
+				OnClickPagesUnit);
+	}
+
+	public void updatePageIndex() {
+		pageCount = db.getPageCount(currentNoteName);
+		pageListButton.setText(String.format(
+				getString(R.string.page_current_index), currentPageIndex,
+				pageCount));
+
+	}
+
+	public void setToolControl() {
+		toolControl = findViewByIdS(R.id.tool_control);
+		findViewByIdS(R.id.tool_fullscreen).setOnClickListener(
+				OnClickToolControl);
+		findViewByIdS(R.id.tool_color).setOnClickListener(OnClickToolControl);
+		findViewByIdS(R.id.tool_editer).setOnClickListener(OnClickToolControl);
+		findViewByIdS(R.id.tool_pen).setOnClickListener(OnClickToolControl);
+		findViewByIdS(R.id.tool_shepe).setOnClickListener(OnClickToolControl);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends View> T findViewByIdS(int id) {
+		return (T) getActivity().findViewById(id);
+	}
 
 }

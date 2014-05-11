@@ -3,29 +3,34 @@
 	android:id="@+id/fragment_note"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent" >
+
 	<com.aizak.drawnote.view.DrawingView
+		android:id="@+id/drawing_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
-	<Button
-		android:id="@+id/note_button_page_list"
+
+	<FrameLayout
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
 		android:layout_centerHorizontal="true"
-		android:layout_marginBottom="@dimen/page_list_button_margin"
-		android:text="@string/page_current_index" />
-	<ImageButton
-		android:id="@+id/note_button_page_next"
+		android:layout_marginBottom="15dp" >
+
+		<include
+			android:id="@+id/page_control"
+			layout="@layout/include_page_control" />
+	</FrameLayout>
+
+	<FrameLayout
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_alignTop="@+id/note_button_page_list"
-		android:layout_toRightOf="@+id/note_button_page_list"
-		android:src="@android:drawable/ic_media_next" />
-	<ImageButton
-		android:id="@+id/note_button_page_previous"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_alignTop="@+id/note_button_page_list"
-		android:layout_toLeftOf="@+id/note_button_page_list"
-		android:src="@android:drawable/ic_media_previous" />
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentLeft="true" >
+
+		<include
+			android:id="@+id/tool_control"
+			layout="@layout/include_tool_control"
+			android:visibility="gone" />
+	</FrameLayout>
+
 </RelativeLayout>

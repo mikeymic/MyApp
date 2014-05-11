@@ -1,5 +1,6 @@
 package com.aizak.drawnote.view;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
@@ -11,20 +12,23 @@ import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
 import android.graphics.Paint.Style;
+import android.os.Parcelable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.aizak.drawnote.activity.DrawNoteActivity;
 import com.aizak.drawnote.model.DataModel;
 import com.aizak.drawnote.model.Line;
+import com.aizak.drawnote.model.MyPaint;
 import com.aizak.drawnote.undomanager.AddLineCommand;
 import com.aizak.drawnote.undomanager.CommandInvoker;
 import com.aizak.drawnote.undomanager.ICommand;
 
 public class DrawingView extends View {
 
-	private int drawMode;
+	public int drawMode;
 	public static final int MODE_CLEAR = 0;
 	public static final int MODE_DRAW = 1;
 	public static final int MODE_UNDO = 2;
@@ -38,32 +42,38 @@ public class DrawingView extends View {
 
 	private Bitmap bitmap;
 	private Canvas bmpCanvas;
+	public ArrayList<Line> lines = new ArrayList<Line>();
 
 	public DrawingView(Context context) {
 		super(context);
-		init();
+		init(context);
 	}
 
 	public DrawingView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		init();
+		init(context);
 	}
 
 	public DrawingView(Context context, AttributeSet attrs, int defStyleAttr) {
 		super(context, attrs, defStyleAttr);
-		init();
+		init(context);
 	}
 
-	private void init() {
+	private void init(Context context) {
 		dataModel = new DataModel();
 		invoker = new CommandInvoker();
 
+		if (context instanceof DrawNoteActivity) {
+			bitmap = ((DrawNoteActivity) context).getImage();
+		}
 		bmpFilter = new Paint();
 		bmpFilter.setFilterBitmap(true);
+
+
 	}
 
-	private Paint createPaint() {
-		Paint paint = new Paint();
+	private MyPaint createPaint() {
+		MyPaint paint = new MyPaint();
 		paint.setFilterBitmap(true);
 		paint.setAntiAlias(true);
 		paint.setStrokeWidth(6);
@@ -109,6 +119,13 @@ public class DrawingView extends View {
 			case MODE_CLEAR:
 				Log.d("TEST", "through MODE_CLEAR2");
 //				bmpCanvas.drawColor(Color.BLUE);
+				if (lines != null) {
+					bmpCanvas.drawColor(Color.WHITE);
+					int sizes = lines.size();
+					for (int i = 0; i < sizes; i++) {
+						lines.get(i).drawLine(bmpCanvas);
+					}
+				}
 				break;
 			case MODE_DRAW:
 				line.drawLine(bmpCanvas);
@@ -116,10 +133,10 @@ public class DrawingView extends View {
 			case MODE_UNDO:
 			case MODE_REDO:
 				bmpCanvas.drawColor(Color.BLUE);
-				List<Line> lines = dataModel.lines;
-				int size = lines.size();
+				List<Line> lineData = dataModel.lines;
+				int size = lineData.size();
 				for (int i = 0; i < size; i++) {
-					lines.get(i).drawLine(bmpCanvas);
+					lineData.get(i).drawLine(bmpCanvas);
 				}
 				break;
 		}
@@ -141,20 +158,34 @@ public class DrawingView extends View {
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				line = new Line();
+				line.setPaint(createPaint());
+				line.moveTo(x, y);
 				break;
 			case MotionEvent.ACTION_MOVE:
 				for (int i = 0; i < size; i++) {
 					float hisX = event.getHistoricalX(i);
 					float hisY = event.getHistoricalY(i);
+					line.lineTo(hisX, hisY);
 				}
+				line.lineTo(x, y);
 				break;
 			case MotionEvent.ACTION_UP:
+				line.setLastPoint(x, y);
+				lines.add(line);
 				ICommand command = new AddLineCommand(dataModel, line);
 				invoker.invoke(command);
 				break;
 		}
 		invalidate();
 		return true;
+	}
+
+	/* (非 Javadoc)
+	 * @see android.view.View#onSaveInstanceState()
+	 */
+	@Override
+	protected Parcelable onSaveInstanceState() {
+		return super.onSaveInstanceState();
 	}
 
 }

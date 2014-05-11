@@ -14,7 +14,7 @@ public class MyCursorLoader extends SimpleCursorLoader {
 
 	@Override
 	public Cursor loadInBackground() {
-		DatabaseModel db = new DatabaseModel(context);
-		return db.readNote();
+		DBModel db = new DBModel(context);
+		return db.getNote();
 	}
 }

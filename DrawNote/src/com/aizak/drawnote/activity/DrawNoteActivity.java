@@ -1,45 +1,49 @@
 package com.aizak.drawnote.activity;
 
-import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBar.Tab;
-import android.support.v7.app.ActionBar.TabListener;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.PopupWindow;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.database.DatabaseModel;
+import com.aizak.drawnote.activity.database.DBModel;
+import com.aizak.drawnote.activity.listener.MyTabListener;
 import com.aizak.drawnote.fragment.BookshelfFragment;
-import com.aizak.drawnote.fragment.BookshelfFragment.OnDBListener;
 import com.aizak.drawnote.fragment.BookshelfFragment.OnNoteClickListener;
 import com.aizak.drawnote.fragment.NoteFragment;
+import com.aizak.drawnote.fragment.NoteFragment.OnDeserializeListener;
+import com.aizak.drawnote.view.MyNotification;
+import com.aizak.drawnote.view.MyPopupWindow;
 
-public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickListener, OnDBListener {
+public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS, OnNoteClickListener, OnDeserializeListener {
 
+	//**-------------------- fragment --------------------**//
 	private final NoteFragment noteFragment = new NoteFragment();
 	private final BookshelfFragment bookshelfFragment = new BookshelfFragment();
 
-	DatabaseModel db = new DatabaseModel(this);
-
-	private View popupNoteListView;
-	private Bitmap Image;
-
+	//**-------------------- DB --------------------**//
+	private DBModel db = new DBModel(this);
 	private final String password = "test-password";
 
+	//**-------------------- View --------------------**//
+	private MyPopupWindow popupWindow;
+
+	//**-------------------- drawring data --------------------**//
+	private Bitmap Image;
+
+	//**-------------------- リスナー --------------------**//
+	private final MyTabListener onTabClick = new MyTabListener();
+
+	//**-------------------- Activity Method --------------------**//
+	/* (非 Javadoc)
+	 * @see android.support.v7.app.ActionBarActivity#onCreate(android.os.Bundle)
+	 */
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -47,10 +51,28 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 		if (savedInstanceState == null) {
 			commitBookShelfFragment();
 		}
+		popupWindow = new MyPopupWindow(this);
 	}
 
-	//**-------------------- fragmentのコミット--------------------**//
+	/* (非 Javadoc)
+	 * @see android.support.v4.app.FragmentActivity#onResume()
+	 */
+	@Override
+	protected void onResume() {
+		super.onResume();
+	}
 
+	/* (非 Javadoc)
+	 * @see android.support.v7.app.ActionBarActivity#onStop()
+	 */
+	@Override
+	protected void onStop() {
+		super.onStop();
+	}
+
+
+
+	//**-------------------- fragmentのコミット --------------------**//
 	private void commitBookShelfFragment() {
 		getSupportFragmentManager().beginTransaction()
 				.add(R.id.container, bookshelfFragment)
@@ -59,9 +81,9 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 		findViewById(R.id.container).setOnTouchListener(bookshelfFragment);
 		ActionBar actionBar = getSupportActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
-		actionBar.addTab(actionBar.newTab().setText("Create").setTabListener(onTabClicked));
-		actionBar.addTab(actionBar.newTab().setText("Tmplate").setTabListener(onTabClicked));
-		actionBar.addTab(actionBar.newTab().setText("Trash").setTabListener(onTabClicked));
+		actionBar.addTab(actionBar.newTab().setText("Create").setTabListener(onTabClick));
+		actionBar.addTab(actionBar.newTab().setText("Tmplate").setTabListener(onTabClick));
+		actionBar.addTab(actionBar.newTab().setText("Trash").setTabListener(onTabClick));
 
 	}
 
@@ -85,68 +107,15 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 		commitNoteFragment();
 	}
 
-	//**-------------------- リスナー --------------------**//
-	private final TabListener onTabClicked = new TabListener() {
-
-		@Override
-		public void onTabUnselected(Tab tab, FragmentTransaction transition) {
-			tab.getPosition();
-
-		}
-
-		@Override
-		public void onTabSelected(Tab tab, FragmentTransaction transition) {
-
-		}
-
-		@Override
-		public void onTabReselected(Tab tab, FragmentTransaction transition) {
-
-		}
-	};
-
-	//**------------------ PopupWindow --------------------**//
-	/**
-	 * @return PopupWindow
-	 */
-	private PopupWindow createPageListPopupWindow() {
-		popupNoteListView = LayoutInflater.from(this).inflate(R.layout.gridview_row_note, null, false);
-		PopupWindow popupWindow = new PopupWindow(noteFragment.getView());
-		popupWindow.setWindowLayoutMode(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-		popupWindow.setContentView(popupNoteListView);
-		return popupWindow;
-	}
-
 	//**------------------ Notification --------------------**//
-
 	private void createNotification() {
-		String url = "http://www.google.com";
-		Uri uri = Uri.parse(url);
-		// 新たにアクティビティーを開始するためにPendingIntentを取得する
-		// Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-
-		Intent intent = new Intent(this, NoteFragment.class);
-
-		PendingIntent pi = PendingIntent.getActivity(this, 0, intent, 0);
-
 		// Notificationマネージャのインスタンスを取得
 		NotificationManager mgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-
-		// NotificationBuilderのインスタンスを作成
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(
-				getApplicationContext());
-		builder.setContentIntent(pi).setTicker("テキスト")// ステータスバーに表示されるテキスト
-				.setSmallIcon(R.drawable.ic_launcher)// アイコン
-				.setContentTitle("タイトル")// Notificationが開いたとき
-				.setContentText("メッセージ")// Notificationが開いたとき
-				.setWhen(System.currentTimeMillis())// 通知するタイミング
-				.setPriority(Integer.MAX_VALUE);
-		Notification notification = builder.build();
-		notification.flags = Notification.FLAG_NO_CLEAR
-				| Notification.FLAG_ONGOING_EVENT;
-
+		MyNotification notification = new MyNotification(this);
 		mgr.notify(1, notification);
 	}
+
+	//**------------------ DB操作 --------------------**//
 
 	//*------------------ オーバーレイ --------------------*//
 	public void startOverlayService() {
@@ -174,10 +143,22 @@ public class DrawNoteActivity extends ActionBarActivity implements OnNoteClickLi
 	}
 
 	@Override
-	public void onDBControl(View view, MenuItem item) {
-		if (view == null) {
-			db.createNote();
-		}
+	public void onDeserialize(byte[] stream) {
+	}
+
+
+	//**-------------------- getter/setter --------------------**//
+	/**
+	 * @return image
+	 */
+	public Bitmap getImage() {
+		return Image;
+	}
+
+
+	@Override
+	public <T extends View> T findViewByIdS(int id) {
+		return (T)findViewById(id);
 	}
 
 }

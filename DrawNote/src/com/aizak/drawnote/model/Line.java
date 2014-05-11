@@ -21,6 +21,22 @@ public class Line implements Serializable {
 		this.paint = new MyPaint(paint);
 	}
 
+	public void setPaint(MyPaint paint) {
+		this.paint = new MyPaint(paint);
+	}
+
+	public void moveTo(float x, float y) {
+		path.moveTo(x, y);
+	}
+
+	public void lineTo(float x, float y) {
+		path.lineTo(x, y);
+	}
+
+	public void setLastPoint(float dx, float dy) {
+		path.setLastPoint(dx, dy);
+	}
+
 	public void drawLine(Canvas canvas) {
 		canvas.drawPath(path, paint);
 	}
