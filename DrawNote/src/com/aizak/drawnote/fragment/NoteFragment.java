@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -23,6 +24,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aizak.drawnote.R;
@@ -34,12 +36,13 @@ import com.aizak.drawnote.activity.database.DBModel;
 import com.aizak.drawnote.activity.database.SerializeManager;
 import com.aizak.drawnote.fragment.BookshelfFragment.OnNoteClickListener;
 import com.aizak.drawnote.model.Line;
+import com.aizak.drawnote.view.ColorPickerDialog;
 import com.aizak.drawnote.view.DrawingView;
 import com.aizak.drawnote.view.MyPopupWindow;
 
 /**
  * @author 1218AND
- *
+ * 
  */
 public class NoteFragment extends Fragment implements FindViewByIdS,
 		OnTouchListener {
@@ -69,6 +72,8 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 	private boolean isScreenMode = false;
 
 	private ArrayList<Line> lines;
+
+	private boolean overlayFlg;
 
 	/*
 	 * (非 Javadoc)
@@ -138,6 +143,7 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+
 		drawingView = findViewByIdS(R.id.drawing_view);
 
 		String name = getArguments().getString(C.DB.CLM_NOTES_NAME);
@@ -155,6 +161,11 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 		updatePageIndex();
 
 		drawingView.invalidate();
+
+		setTest();//debug
+		updateTestText();//debug
+
+		setColorPicker();
 	}
 
 	/*
@@ -192,39 +203,58 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		Log.d("TEST", "NoteFragment#onItemSelected");
 		savePage();
-
+		updateTestText();//debug
 		int id = item.getItemId();
 		switch (id) {
-		case R.id.action_insert_new_page:
-			if (currentPageIndex < pageCount) {
-				db.updatePageIndexWhenInsert(currentNoteName, currentPageIndex, pageCount);
-			} else {
-				currentPageIndex++;
-			}
-			db.insertNewPage(currentNoteName, currentPageIndex);
-			updatePageInformation();
-			break;
-		case R.id.action_delete_page:
-			db.deletePage(currentNoteName, currentPageIndex);
-			if (currentPageIndex < pageCount) {
-				db.updatePageIndexWhenDelete(currentNoteName, currentPageIndex,
-						pageCount);
-			}
-			updatePageInformation();
-			break;
-		case R.id.action_fullscreen:
-			ActionBarUtil.actionBarSetVisiblity(getActivity(), View.GONE);
-			pageControl.setVisibility(View.GONE);
-			toolControl.setVisibility(View.VISIBLE);
-			isScreenMode = true;
-			break;
-		case R.id.action_settings:
-			break;
-		default:
-			return false;
+			case R.id.action_insert_new_page:
+				if (currentPageIndex < pageCount) {
+					db.updatePageIndexWhenInsert(currentNoteName, currentPageIndex, pageCount);
+				} else {
+					currentPageIndex++;
+				}
+				db.insertNewPage(currentNoteName, currentPageIndex);
+				updatePageInformation();
+				break;
+			case R.id.action_delete_page:
+				db.deletePage(currentNoteName, currentPageIndex);
+				if (currentPageIndex < pageCount) {
+					db.updatePageIndexWhenDelete(currentNoteName, currentPageIndex,
+							pageCount);
+				}
+				updatePageInformation();
+				break;
+			case R.id.action_undo:
+				drawingView.setDrawMode(DrawingView.MODE_UNDO);
+				break;
+			case R.id.action_redo:
+				drawingView.setDrawMode(DrawingView.MODE_REDO);
+
+				break;
+			case R.id.action_fullscreen:
+				ActionBarUtil.actionBarSetVisiblity(getActivity(), View.GONE);
+				pageControl.setVisibility(View.GONE);
+				toolControl.setVisibility(View.VISIBLE);
+				isScreenMode = true;
+				break;
+			case R.id.action_overlay:
+				Log.d("TEST", "NoteFragment#onItemSelected#action_overlay");
+				overlayFlg = !overlayFlg;
+				if (overlayFlg) {
+					activity.startOverlayService();
+				} else {
+					activity.stopOverlayService();
+				}
+				break;
+			case R.id.action_settings:
+				mColorPickerDialog.show();
+				break;
+			default:
+				return false;
 		}
 		drawingView.invalidate();
+		updateTestText();//debug
 		return true;
 	}
 
@@ -240,7 +270,6 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 			ActionBarUtil.actionBarSetVisiblity(getActivity(), View.VISIBLE);// 後でActivityに移動
 		}
 	}
-
 
 	/*
 	 * (非 Javadoc)
@@ -320,25 +349,26 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 		@SuppressWarnings("unchecked")
 		@Override
 		public void onClick(View v) {
+			updateTestText();//debug
 			savePage();
 			String msg = null;
 			int id = v.getId();
 			switch (id) {
-			case R.id.note_button_page_next:
-				if (currentPageIndex == pageCount) {
-					msg = activity.getString(R.string.msg_no_next_page);
+				case R.id.note_button_page_next:
+					if (currentPageIndex == pageCount) {
+						msg = activity.getString(R.string.msg_no_next_page);
+						break;
+					}
+					currentPageIndex++;
 					break;
-				}
-				currentPageIndex++;
-				break;
 
-			case R.id.note_button_page_previous:
-				if (currentPageIndex == 1) {
-					msg = activity.getString(R.string.msg_no_previous_page);
+				case R.id.note_button_page_previous:
+					if (currentPageIndex == 1) {
+						msg = activity.getString(R.string.msg_no_previous_page);
+						break;
+					}
+					currentPageIndex--;
 					break;
-				}
-				currentPageIndex--;
-				break;
 			}
 
 			if (msg != null) {
@@ -346,52 +376,62 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 			}
 
 			updatePageInformation();
-
+			updateTestText();//debug
 		}
 	};
 
-	private OnClickListener OnClickToolControl = new OnClickListener() {
+	private final OnClickListener OnClickToolControl = new OnClickListener() {
 
 		@Override
 		public void onClick(View v) {
+			updateTestText();//debug
 			int id = v.getId();
 			switch (id) {
-			case R.id.tool_fullscreen:
-				ActionBarUtil
-						.actionBarSetVisiblity(getActivity(), View.VISIBLE);
-				pageControl.setVisibility(View.VISIBLE);
-				toolControl.setVisibility(View.GONE);
-				isScreenMode = false;
-				break;
-			case R.id.tool_color:
+				case R.id.tool_fullscreen:
+					ActionBarUtil
+							.actionBarSetVisiblity(getActivity(), View.VISIBLE);
+					pageControl.setVisibility(View.VISIBLE);
+					toolControl.setVisibility(View.GONE);
+					isScreenMode = false;
+					break;
+				case R.id.tool_color:
 
-				break;
-			case R.id.tool_editer:
+					break;
+				case R.id.tool_editer:
 
-				break;
-			case R.id.tool_pen:
+					break;
+				case R.id.tool_pen:
 
-				break;
-			case R.id.tool_shepe:
+					break;
+				case R.id.tool_shepe:
 
-				break;
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
-
+			updateTestText();//debug
 		}
 	};
+
+	private TextView testName;
+
+	private TextView testIndex;
+
+	private TextView testCount;
+
+	private ColorPickerDialog mColorPickerDialog;
 
 	public void updatePageInformation() {
 		getPage();
 		updatePageIndex();
 
-		drawingView.drawMode = drawingView.MODE_CLEAR;
+		drawingView.setDrawMode(DrawingView.MODE_CLEAR);
 		drawingView.invalidate();
 	}
 
 	public void savePage() {
+		lines.addAll(drawingView.dataModel.lines);
 		byte[] stream = SerializeManager.serializeData(lines);
 		db.updatePage(currentNoteName, currentPageIndex, stream);
 	}
@@ -435,6 +475,31 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 		findViewByIdS(R.id.tool_editer).setOnClickListener(OnClickToolControl);
 		findViewByIdS(R.id.tool_pen).setOnClickListener(OnClickToolControl);
 		findViewByIdS(R.id.tool_shepe).setOnClickListener(OnClickToolControl);
+	}
+
+	public void setTest() {
+		testName = findViewByIdS(R.id.test_name);
+		testIndex = findViewByIdS(R.id.test_index);
+		testCount = findViewByIdS(R.id.test_count);
+	}
+
+	public void updateTestText() {
+		testName.setText(currentNoteName);
+		testIndex.setText(String.valueOf(currentPageIndex));
+		testCount.setText(String.valueOf(pageCount));
+
+	}
+
+	public void setColorPicker() {
+
+		mColorPickerDialog = new ColorPickerDialog(activity, new ColorPickerDialog.OnColorChangedListener() {
+
+			@Override
+			public void colorChanged(int color) {
+				drawingView.color = color;
+			}
+		}, Color.BLACK);
+
 	}
 
 	@SuppressWarnings("unchecked")

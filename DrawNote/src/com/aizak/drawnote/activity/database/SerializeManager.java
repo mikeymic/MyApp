@@ -8,10 +8,18 @@ import java.io.ObjectOutputStream;
 import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 
+import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+
 import com.aizak.drawnote.model.Line;
 
-
 public class SerializeManager {
+
+	public static byte[] serializeData(Bitmap data) {
+		ByteArrayOutputStream stream = new ByteArrayOutputStream();
+		data.compress(CompressFormat.PNG, 100, stream);
+		return stream.toByteArray();
+	}
 
 	public static byte[] serializeData(Object data) {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
@@ -24,6 +32,7 @@ public class SerializeManager {
 		}
 		return stream.toByteArray();
 	}
+
 	public static byte[] serializeData(ArrayList<Line> data) {
 		ByteArrayOutputStream stream = new ByteArrayOutputStream();
 		try {
@@ -49,6 +58,7 @@ public class SerializeManager {
 		}
 		return data;
 	}
+
 	@SuppressWarnings("unchecked")
 	public static ArrayList<Line> deserializeData(byte[] stream, int i) {
 		ArrayList<Line> data = null;

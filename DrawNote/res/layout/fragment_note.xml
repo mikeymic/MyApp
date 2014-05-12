@@ -3,34 +3,33 @@
 	android:id="@+id/fragment_note"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent" >
-
 	<com.aizak.drawnote.view.DrawingView
 		android:id="@+id/drawing_view"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent" />
-
 	<FrameLayout
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
 		android:layout_centerHorizontal="true"
 		android:layout_marginBottom="15dp" >
-
 		<include
 			android:id="@+id/page_control"
 			layout="@layout/include_page_control" />
 	</FrameLayout>
-
 	<FrameLayout
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		android:layout_alignParentBottom="true"
 		android:layout_alignParentLeft="true" >
-
 		<include
 			android:id="@+id/tool_control"
 			layout="@layout/include_tool_control"
 			android:visibility="gone" />
 	</FrameLayout>
-
+	<FrameLayout
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content" >
+		<include layout="@layout/test_page_info" />
+	</FrameLayout>
 </RelativeLayout>

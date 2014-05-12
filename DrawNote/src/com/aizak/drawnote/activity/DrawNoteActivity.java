@@ -4,6 +4,8 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
@@ -13,34 +15,37 @@ import android.view.View;
 
 import com.aizak.drawnote.R;
 import com.aizak.drawnote.activity.database.DBModel;
+import com.aizak.drawnote.activity.database.SerializeManager;
 import com.aizak.drawnote.activity.listener.MyTabListener;
 import com.aizak.drawnote.fragment.BookshelfFragment;
 import com.aizak.drawnote.fragment.BookshelfFragment.OnNoteClickListener;
 import com.aizak.drawnote.fragment.NoteFragment;
 import com.aizak.drawnote.fragment.NoteFragment.OnDeserializeListener;
+import com.aizak.drawnote.service.OverlayService;
 import com.aizak.drawnote.view.MyNotification;
 import com.aizak.drawnote.view.MyPopupWindow;
 
-public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS, OnNoteClickListener, OnDeserializeListener {
+public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS, OnNoteClickListener,
+		OnDeserializeListener {
 
-	//**-------------------- fragment --------------------**//
+	//DB
+	private final DBModel db = new DBModel(this);
+	private final String password = "test-password";
+
+	//View
+	private MyPopupWindow popupWindow;
+
+	//Fagment
 	private final NoteFragment noteFragment = new NoteFragment();
 	private final BookshelfFragment bookshelfFragment = new BookshelfFragment();
 
-	//**-------------------- DB --------------------**//
-	private DBModel db = new DBModel(this);
-	private final String password = "test-password";
+	//Data
+	public Bitmap Image;
 
-	//**-------------------- View --------------------**//
-	private MyPopupWindow popupWindow;
-
-	//**-------------------- drawring data --------------------**//
-	private Bitmap Image;
-
-	//**-------------------- リスナー --------------------**//
+	//Listener
 	private final MyTabListener onTabClick = new MyTabListener();
 
-	//**-------------------- Activity Method --------------------**//
+	/*-------------------- < Activity Method > --------------------*/
 	/* (非 Javadoc)
 	 * @see android.support.v7.app.ActionBarActivity#onCreate(android.os.Bundle)
 	 */
@@ -52,6 +57,12 @@ public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS
 			commitBookShelfFragment();
 		}
 		popupWindow = new MyPopupWindow(this);
+
+		Rect rect = new Rect();
+		getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+
+		Image = Bitmap.createBitmap(rect.width(), rect.height(), Config.ARGB_8888);
+
 	}
 
 	/* (非 Javadoc)
@@ -70,9 +81,7 @@ public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS
 		super.onStop();
 	}
 
-
-
-	//**-------------------- fragmentのコミット --------------------**//
+	/*-------------------- <fragmentのコミット> --------------------*/
 	private void commitBookShelfFragment() {
 		getSupportFragmentManager().beginTransaction()
 				.add(R.id.container, bookshelfFragment)
@@ -97,7 +106,7 @@ public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS
 		getSupportActionBar().setNavigationMode(ActionBar.NAVIGATION_MODE_STANDARD);
 	}
 
-	//**-------------------- fragmentからのコールバック --------------------**//
+	/*-------------------- <fragmentからのコールバック> --------------------*/
 	@Override
 	public void onNoteClicked(String name) {
 		Log.d("NAME#onNoteClicked", name);
@@ -107,7 +116,7 @@ public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS
 		commitNoteFragment();
 	}
 
-	//**------------------ Notification --------------------**//
+	/*------------------ <Notification> --------------------*/
 	private void createNotification() {
 		// Notificationマネージャのインスタンスを取得
 		NotificationManager mgr = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
@@ -115,23 +124,33 @@ public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS
 		mgr.notify(1, notification);
 	}
 
-	//**------------------ DB操作 --------------------**//
+	/*------------------ <DB操作> --------------------*/
 
-	//*------------------ オーバーレイ --------------------*//
+	/*------------------ <オーバーレイ> --------------------*/
+	/**
+	 * オーバーレイ出力
+	 */
 	public void startOverlayService() {
+		Log.d("TEST", "DrawNoteActiviry#startOverlayService");
+		//オーバーレイのズレ防止 (マージンの取得) !!!一番重要なところ。絶対いじらないこと
+//		---------------------------------------------------------------------------	//
+		Rect rect = new Rect();
+		getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
 
-		Intent intent = new Intent();
+		int displayHeight = rect.bottom;
+		int statusBarHeight = rect.top;
+		int viewHeight = noteFragment.getView().getHeight();
 
-		startService(intent);
+		int viewTop = displayHeight - viewHeight - statusBarHeight;
+//		---------------------------------------------------------------------------	//
 
+		byte[] stream = SerializeManager.serializeData(Image);
+		startService(new Intent(DrawNoteActivity.this, OverlayService.class)
+				.putExtra(OverlayService.streamName, stream).putExtra(OverlayService.streamHeight, viewTop));
 	}
 
 	public void stopOverlayService() {
-
-		Intent intent = new Intent();
-
-		startService(intent);
-
+		stopService(new Intent(DrawNoteActivity.this, OverlayService.class));
 	}
 
 	public void startDemonOverlayService() {
@@ -146,7 +165,6 @@ public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS
 	public void onDeserialize(byte[] stream) {
 	}
 
-
 	//**-------------------- getter/setter --------------------**//
 	/**
 	 * @return image
@@ -155,10 +173,9 @@ public class DrawNoteActivity extends ActionBarActivity implements FindViewByIdS
 		return Image;
 	}
 
-
 	@Override
 	public <T extends View> T findViewByIdS(int id) {
-		return (T)findViewById(id);
+		return (T) findViewById(id);
 	}
 
 }

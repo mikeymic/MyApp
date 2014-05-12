@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
 	<string name="app_name">DrawNote</string>
 	<string name="action_settings">Settings</string>
+	<string name="action_insert_new_page">New</string>
+	<string name="action_delete_page">Delete</string>
+	<string name="action_undo">Undo</string>
+	<string name="action_redo">Redo</string>
+	<string name="action_overlay">Overlay</string>
 	<string name="action_fullscreen">Full screen</string>
 	<string name="page_current_index">%1$d / %2$d</string>
 	<string name="note_info_create_date">作成日時 : %1$s</string>
@@ -11,5 +15,4 @@
 	<string name="note_info_index">%1$d / %2$d</string>
 	<string name="msg_no_next_page">これより先にページはありません</string>
 	<string name="msg_no_previous_page">これより前にページはありません</string>
-
 </resources>

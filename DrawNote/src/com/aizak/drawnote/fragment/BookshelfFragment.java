@@ -26,6 +26,7 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.aizak.drawnote.R;
 import com.aizak.drawnote.activity.C;
@@ -39,14 +40,12 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 		public void onNoteClicked(String name);
 	}
 
-
 	DBModel db;
 	private Context context;
 	private View view;
 
 	private GridView gridView;
 	private SimpleCursorAdapter cursorAdapter;
-
 
 	private OnNoteClickListener noteClickListener;
 
@@ -110,6 +109,8 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		Toast.makeText(getActivity(), "TEST", Toast.LENGTH_SHORT).show();
+		Log.d("TEST", "BookShelfFragment#onItemSelected");
 		db.insertNewNote();
 		return super.onOptionsItemSelected(item);
 	}
@@ -131,7 +132,9 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		gridView = (GridView) getView().findViewById(R.id.book_shelf_gridview);
-		cursorAdapter = new SimpleCursorAdapter(context, R.layout.gridview_row_note, null, C.GCS.from, C.GCS.to, 0);
+		Cursor cursor = db.getNotes();
+//		cursor.registerContentObserver(observer);
+		cursorAdapter = new SimpleCursorAdapter(context, R.layout.gridview_row_note, cursor, C.GCS.from, C.GCS.to, 0);
 		gridView.setNumColumns(3);
 		gridView.setOnItemClickListener(OnClickNote);
 		gridView.setAdapter(cursorAdapter);
@@ -224,7 +227,6 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 		}
 	};
 
-
 	private final OnItemClickListener OnClickNote = new OnItemClickListener() {
 
 		@Override
@@ -236,9 +238,8 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 		}
 	};
 
-
 	@Override
 	public <T extends View> T findViewByIdS(int id) {
-		return (T)getActivity().findViewById(id);
+		return (T) getActivity().findViewById(id);
 	}
 }

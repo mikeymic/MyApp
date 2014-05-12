@@ -5,14 +5,15 @@ import java.util.List;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
+import android.graphics.BlurMaskFilter;
+import android.graphics.BlurMaskFilter.Blur;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
 import android.graphics.Paint.Style;
-import android.os.Parcelable;
+import android.graphics.PorterDuff;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -28,13 +29,15 @@ import com.aizak.drawnote.undomanager.ICommand;
 
 public class DrawingView extends View {
 
-	public int drawMode;
+	private int drawMode;
 	public static final int MODE_CLEAR = 0;
 	public static final int MODE_DRAW = 1;
 	public static final int MODE_UNDO = 2;
 	public static final int MODE_REDO = 3;
 
-	DataModel dataModel;
+	public int color = Color.BLACK;
+
+	public DataModel dataModel;
 	CommandInvoker invoker;
 	Line line;
 
@@ -68,27 +71,25 @@ public class DrawingView extends View {
 		}
 		bmpFilter = new Paint();
 		bmpFilter.setFilterBitmap(true);
-
-
+		bmpFilter.setAntiAlias(true);
+		bmpFilter.setDither(true);
+		bmpFilter.setMaskFilter(new BlurMaskFilter(0.5f, Blur.NORMAL));
+		bitmap = ((DrawNoteActivity) context).Image;
+		bmpCanvas = new Canvas(bitmap);
 	}
 
-	private MyPaint createPaint() {
+	private MyPaint createPaint(int color) {
 		MyPaint paint = new MyPaint();
 		paint.setFilterBitmap(true);
 		paint.setAntiAlias(true);
+		paint.setDither(true);
+		paint.setMaskFilter(new BlurMaskFilter(0.5f, Blur.NORMAL));
 		paint.setStrokeWidth(6);
 		paint.setStrokeCap(Cap.ROUND);
 		paint.setStrokeJoin(Join.ROUND);
 		paint.setStyle(Style.STROKE);
-		paint.setColor(Color.RED);
+		paint.setColor(color);
 		return paint;
-	}
-
-	@Override
-	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		super.onSizeChanged(w, h, oldw, oldh);
-		bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Config.ARGB_8888);
-		bmpCanvas = new Canvas(bitmap);
 	}
 
 	public void setDrawMode(int drawMode) {
@@ -117,10 +118,10 @@ public class DrawingView extends View {
 
 		switch (drawMode) {
 			case MODE_CLEAR:
-				Log.d("TEST", "through MODE_CLEAR2");
+				Log.d("TEST", "DrawingView#onDraw#MODE_CLEAR");
 //				bmpCanvas.drawColor(Color.BLUE);
 				if (lines != null) {
-					bmpCanvas.drawColor(Color.WHITE);
+					bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 					int sizes = lines.size();
 					for (int i = 0; i < sizes; i++) {
 						lines.get(i).drawLine(bmpCanvas);
@@ -132,7 +133,16 @@ public class DrawingView extends View {
 				break;
 			case MODE_UNDO:
 			case MODE_REDO:
-				bmpCanvas.drawColor(Color.BLUE);
+				bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+
+				if (lines != null) {
+					bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+					int sizes = lines.size();
+					for (int i = 0; i < sizes; i++) {
+						lines.get(i).drawLine(bmpCanvas);
+					}
+				}
+
 				List<Line> lineData = dataModel.lines;
 				int size = lineData.size();
 				for (int i = 0; i < size; i++) {
@@ -158,7 +168,7 @@ public class DrawingView extends View {
 		switch (event.getAction()) {
 			case MotionEvent.ACTION_DOWN:
 				line = new Line();
-				line.setPaint(createPaint());
+				line.setPaint(createPaint(color));
 				line.moveTo(x, y);
 				break;
 			case MotionEvent.ACTION_MOVE:
@@ -171,21 +181,13 @@ public class DrawingView extends View {
 				break;
 			case MotionEvent.ACTION_UP:
 				line.setLastPoint(x, y);
-				lines.add(line);
+//				lines.add(line);
 				ICommand command = new AddLineCommand(dataModel, line);
 				invoker.invoke(command);
 				break;
 		}
 		invalidate();
 		return true;
-	}
-
-	/* (非 Javadoc)
-	 * @see android.view.View#onSaveInstanceState()
-	 */
-	@Override
-	protected Parcelable onSaveInstanceState() {
-		return super.onSaveInstanceState();
 	}
 
 }

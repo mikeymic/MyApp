@@ -7,7 +7,11 @@ import android.util.Log;
 
 import com.aizak.drawnote.activity.C;
 
-public class DBModel{
+public class DBModel {
+
+	//ビルドバージョンで、WhereArgsのStringの扱いが変わる
+	//1.6 : " 'string' "
+	//1.7 : " string "
 
 	public DBModel(Context context) {
 		this.context = context;
@@ -16,25 +20,23 @@ public class DBModel{
 	private final Context context;
 
 	private static final String[] COLUMNS_NOTES = { C.DB.CLM_NOTES_ID,
-		C.DB.CLM_NOTES_NAME, C.DB.CLM_NOTES_CREATE_DATE,
-		C.DB.CLM_NOTES_UPDATE_DATE, C.DB.CLM_NOTES_PAGE_COUNT,
-		C.DB.CLM_NOTES_THUMBNAIL };
+			C.DB.CLM_NOTES_NAME, C.DB.CLM_NOTES_CREATE_DATE,
+			C.DB.CLM_NOTES_UPDATE_DATE, C.DB.CLM_NOTES_PAGE_COUNT,
+			C.DB.CLM_NOTES_THUMBNAIL };
 
 	private static final String[] COLUMNS_PAGES = {
-		C.DB.CLM_PAGES_ID,
-		C.DB.CLM_PAGES_NAME,
-		C.DB.CLM_PAGES_CREATE_DATE,
-		C.DB.CLM_PAGES_UPDATE_DATE,
-		C.DB.CLM_PAGES_INDEX,
-		C.DB.CLM_PAGES_LINE,
-		C.DB.CLM_PAGES_IMAGE };
+			C.DB.CLM_PAGES_ID,
+			C.DB.CLM_PAGES_NAME,
+			C.DB.CLM_PAGES_CREATE_DATE,
+			C.DB.CLM_PAGES_UPDATE_DATE,
+			C.DB.CLM_PAGES_INDEX,
+			C.DB.CLM_PAGES_LINE,
+			C.DB.CLM_PAGES_IMAGE };
 
-	private String whereNote =  C.DB.CLM_NOTES_NAME + " = ? ";
-	private String whereNoteIndex =  C.DB.CLM_NOTES_ID + " = ? ";
-	private String wherePage =  C.DB.CLM_PAGES_NAME + " = ? ";
-	private String wherePageIndex =  C.DB.CLM_PAGES_INDEX + " =  ? ";
-
-
+	private final String whereNote = C.DB.CLM_NOTES_NAME + " = ? ";
+	private final String whereNoteIndex = C.DB.CLM_NOTES_ID + " = ? ";
+	private final String wherePage = C.DB.CLM_PAGES_NAME + " = ? ";
+	private final String wherePageIndex = C.DB.CLM_PAGES_INDEX + " =  ? ";
 
 	//**-------------------- DB操作 --------------------**//
 
@@ -58,7 +60,7 @@ public class DBModel{
 	//ノート保存
 	public void updateNote(String name, int index) {
 		String where = whereNote + " and " + whereNoteIndex;
-		String[] args = {name, String.valueOf(index)};
+		String[] args = { name, String.valueOf(index) };
 
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_NOTES_NAME, name);
@@ -73,7 +75,7 @@ public class DBModel{
 	// ノート削除
 	public void deleteNote(String name, int index) {
 		String where = whereNote + " and " + whereNoteIndex;
-		String[] args = {"'" + name + "'", String.valueOf(index)};
+		String[] args = { "'" + name + "'", String.valueOf(index) };
 
 		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
@@ -137,7 +139,7 @@ public class DBModel{
 	// ページ保存
 	public void updatePage(String name, int index, byte[] stream) {
 		String where = wherePage + " and " + wherePageIndex;
-		String[] args = {name, String.valueOf(index)};
+		String[] args = { name, String.valueOf(index) };
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_PAGES_LINE, stream);
 
@@ -153,7 +155,7 @@ public class DBModel{
 	public byte[] getPage(String name, int index) {
 		Log.d("TEST", "Name = " + name + "Index = " + String.valueOf(index));
 		String where = wherePage + " and " + wherePageIndex;
-		String[] args = {name, String.valueOf(index)};
+		String[] args = { name, String.valueOf(index) };
 		String[] Columns = COLUMNS_PAGES;
 
 		DatabaseHelper helper = new DatabaseHelper(context);
@@ -172,7 +174,7 @@ public class DBModel{
 	// 全ページ読み込み
 	public byte[] getPages(String name) {
 		String where = wherePage;
-		String[] args = {name};
+		String[] args = { name };
 		String[] Columns = COLUMNS_PAGES;
 
 		DatabaseHelper helper = new DatabaseHelper(context);
@@ -191,7 +193,7 @@ public class DBModel{
 	// ページ削除
 	public void deletePage(String name, int index) {
 		String where = wherePage + " and " + wherePageIndex;
-		String[] args = {name, String.valueOf(index)};
+		String[] args = { name, String.valueOf(index) };
 
 		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
@@ -203,7 +205,7 @@ public class DBModel{
 	// 全ページ削除
 	public void deletePages(String name) {
 		String where = C.DB.CLM_PAGES_NAME + " = ? ";
-		String[] args = {name};
+		String[] args = { name };
 
 		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
@@ -215,7 +217,7 @@ public class DBModel{
 	// ページ数取得
 	public int getPageCount(String name) {
 		String where = C.DB.CLM_PAGES_NAME + " = ? ";
-		String[] args = {name};
+		String[] args = { name };
 		String[] Columns = new String[] { C.DB.CLM_PAGES_NAME };
 
 		DatabaseHelper helper = new DatabaseHelper(context);
@@ -236,17 +238,16 @@ public class DBModel{
 		for (int i = pageCount; i >= index; i--) {
 
 			String where = wherePage + " and " + wherePageIndex;
-			String[] args = {name, String.valueOf(i)};
+			String[] args = { name, String.valueOf(i) };
 
 			values.clear();
-			values.put(C.DB.CLM_PAGES_INDEX, i+1);
+			values.put(C.DB.CLM_PAGES_INDEX, i + 1);
 
 			dao.updatePage(where, args, values);
 		}
 		helper.close();
 
 	}
-
 
 	//ページ番号更新
 	public void updatePageIndexWhenDelete(String name, int index, int pageCount) {
@@ -256,7 +257,7 @@ public class DBModel{
 
 		for (int i = index; i <= pageCount; i++) {
 			String where = wherePage + " and " + wherePageIndex;
-			String[] args = {name, String.valueOf(i+1)};
+			String[] args = { name, String.valueOf(i + 1) };
 
 			values.clear();
 			values.put(C.DB.CLM_PAGES_INDEX, i);
