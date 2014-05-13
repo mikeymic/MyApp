@@ -25,7 +25,7 @@ public final class C {
 		public static final String CLM_PAGES_LINE = "line";
 	}
 
-	public static final class DefaultPrefarence {
+	public static final class PREF {
 		public static final String test = "";
 		public static final int test2 = 0;
 	}
@@ -43,5 +43,10 @@ public final class C {
 				R.id.row_note_create_date,
 				R.id.row_note_update_date,
 		};
+	}
+
+	public static final class OVERLAY {
+		public static final String EXTRA_IMAGE = "OverlayImage";
+		public static final String EXTRA_TOP = "Overlayheight";
 	}
 }

@@ -42,7 +42,7 @@ import com.aizak.drawnote.view.MyPopupWindow;
 
 /**
  * @author 1218AND
- * 
+ *
  */
 public class NoteFragment extends Fragment implements FindViewByIdS,
 		OnTouchListener {
@@ -51,7 +51,6 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 		public void onDeserialize(byte[] stream);
 	}
 
-	private OnDeserializeListener deserializeListener;
 
 	private DrawNoteActivity activity;
 	private Context context;
@@ -97,15 +96,14 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 		context = activity;
 		db = new DBModel(context);
 		popupWindow = new MyPopupWindow(context);
+
 		if (activity instanceof DrawNoteActivity) {
 			this.activity = (DrawNoteActivity) activity;
 		}
 
 		if ((activity instanceof OnNoteClickListener) == false) {
-			throw new ClassCastException("activity が OnDBListener を実装していません.");
+			throw new ClassCastException("activity が OnNoteClickListener を実装していません.");
 		}
-		deserializeListener = (OnDeserializeListener) activity;
-		context = activity;
 	}
 
 	/*
@@ -139,7 +137,6 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 	 *
 	 * @see android.support.v4.app.Fragment#onActivityCreated(android.os.Bundle)
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
@@ -200,7 +197,6 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 	 * android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem
 	 * )
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.d("TEST", "NoteFragment#onItemSelected");
@@ -431,7 +427,9 @@ public class NoteFragment extends Fragment implements FindViewByIdS,
 	}
 
 	public void savePage() {
-		lines.addAll(drawingView.dataModel.lines);
+		ArrayList<Line> saveLiens = new ArrayList<>();
+		saveLiens.addAll(lines);
+		saveLiens.addAll(drawingView.dataModel.lines);
 		byte[] stream = SerializeManager.serializeData(lines);
 		db.updatePage(currentNoteName, currentPageIndex, stream);
 	}

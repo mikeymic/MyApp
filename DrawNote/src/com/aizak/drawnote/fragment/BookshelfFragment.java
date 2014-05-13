@@ -7,8 +7,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager.LoaderCallbacks;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.SimpleCursorAdapter;
-import android.support.v4.widget.SimpleCursorAdapter.ViewBinder;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
@@ -26,13 +24,12 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.C;
 import com.aizak.drawnote.activity.FindViewByIdS;
 import com.aizak.drawnote.activity.database.DBModel;
-import com.aizak.drawnote.activity.database.MyCursorLoader;
+import com.aizak.drawnote.activity.list.ListAdapter;
+import com.aizak.drawnote.activity.list.MyCursorLoader;
 
 public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouchListener, LoaderCallbacks<Cursor> {
 
@@ -45,7 +42,6 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	private View view;
 
 	private GridView gridView;
-	private SimpleCursorAdapter cursorAdapter;
 
 	private OnNoteClickListener noteClickListener;
 
@@ -109,9 +105,9 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Toast.makeText(getActivity(), "TEST", Toast.LENGTH_SHORT).show();
 		Log.d("TEST", "BookShelfFragment#onItemSelected");
 		db.insertNewNote();
+//		cursorAdapter.getCursor().requery();//後で変更
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -131,15 +127,24 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
+
+		listAdapter = new ListAdapter(getActivity(), null, true);
+
 		gridView = (GridView) getView().findViewById(R.id.book_shelf_gridview);
-		Cursor cursor = db.getNotes();
-//		cursor.registerContentObserver(observer);
-		cursorAdapter = new SimpleCursorAdapter(context, R.layout.gridview_row_note, cursor, C.GCS.from, C.GCS.to, 0);
 		gridView.setNumColumns(3);
 		gridView.setOnItemClickListener(OnClickNote);
-		gridView.setAdapter(cursorAdapter);
-		cursorAdapter.setViewBinder(viewBinder);
+		gridView.setAdapter(listAdapter);
+
 		getLoaderManager().initLoader(0, null, this);
+	}
+
+	/* (非 Javadoc)
+	 * @see android.support.v4.app.Fragment#onDestroyView()
+	 */
+	@Override
+	public void onDestroyView() {
+		super.onDestroyView();
+		getLoaderManager().destroyLoader(0);
 	}
 
 	/* (非 Javadoc)
@@ -203,29 +208,22 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		MyCursorLoader cursorLoader = new MyCursorLoader(context);
-		return cursorLoader;
+		return new MyCursorLoader(context); //MycursorLoader内部でDBからのCursorをセットしている
 	}
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-		cursorAdapter.swapCursor(cursor);
+		listAdapter.swapCursor(cursor);
+		listAdapter.notifyDataSetChanged();
 	}
 
 	@Override
 	public void onLoaderReset(Loader<Cursor> loaderr) {
-		cursorAdapter.swapCursor(null);
+//		cursorAdapter.swapCursor(null);
+		listAdapter.swapCursor(null);
 
 	}
 
-	private final ViewBinder viewBinder = new ViewBinder() {
-
-		@Override
-		public boolean setViewValue(View view, Cursor cursor, int arg2) {
-			// TODO 自動生成されたメソッド・スタブ
-			return false;
-		}
-	};
 
 	private final OnItemClickListener OnClickNote = new OnItemClickListener() {
 
@@ -237,6 +235,7 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 			noteClickListener.onNoteClicked(name);
 		}
 	};
+	private ListAdapter listAdapter;
 
 	@Override
 	public <T extends View> T findViewByIdS(int id) {

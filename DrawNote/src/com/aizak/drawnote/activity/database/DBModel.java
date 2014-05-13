@@ -46,6 +46,7 @@ public class DBModel {
 	public void insertNewNote() {
 		n++;
 		String name = "test" + String.valueOf(n);
+
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_NOTES_NAME, name);
 
@@ -100,12 +101,9 @@ public class DBModel {
 	//全ノート読み込み
 	public Cursor getNotes() {
 		String[] Columns = COLUMNS_NOTES;
-
 		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
-
 		Cursor cursor = dao.getAllNotes(Columns);
-
 		return cursor;
 	}
 
