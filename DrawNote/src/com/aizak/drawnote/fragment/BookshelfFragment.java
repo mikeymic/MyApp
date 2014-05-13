@@ -210,6 +210,7 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		return new MyCursorLoader(context); //MycursorLoader内部でDBからのCursorをセットしている
 	}
+	
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
