@@ -15,4 +15,6 @@
 	<string name="note_info_index">%1$d / %2$d</string>
 	<string name="msg_no_next_page">これより先にページはありません</string>
 	<string name="msg_no_previous_page">これより前にページはありません</string>
+	<string name="msg_overlay_service_start">オーバーレイを開始しました</string>
+	<string name="msg_overlay_service_stop">オーバーレイを停止しました</string>
 </resources>

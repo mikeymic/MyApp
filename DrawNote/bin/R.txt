@@ -420,6 +420,8 @@ int string action_undo 0x7f0a0011
 int string app_name 0x7f0a000d
 int string msg_no_next_page 0x7f0a001a
 int string msg_no_previous_page 0x7f0a001b
+int string msg_overlay_service_start 0x7f0a001c
+int string msg_overlay_service_stop 0x7f0a001d
 int string note_info_create_date 0x7f0a0016
 int string note_info_index 0x7f0a0019
 int string note_info_name 0x7f0a0018

@@ -50,11 +50,16 @@ public final class C {
 	public static final class OVERLAY {
 		public static final String EXTRA_IMAGE = "OverlayImage";
 		public static final String EXTRA_TOP = "Overlayheight";
+		public static final String EXTRA_NAME = "OverlayServicet";
 	}
 
 	public static final class PREF {
 		public static final String test = "";
 		public static final int test2 = 0;
+	}
+
+	public static final class RV {
+		public static final String INTENT_NAME = "StopIntent";
 	}
 
 }
