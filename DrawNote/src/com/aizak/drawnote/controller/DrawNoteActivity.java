@@ -1,10 +1,9 @@
-package com.aizak.drawnote.activity;
+package com.aizak.drawnote.controller;
 
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.Config;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
@@ -14,35 +13,36 @@ import android.util.Log;
 import android.view.View;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.database.DBModel;
-import com.aizak.drawnote.activity.database.SerializeManager;
 import com.aizak.drawnote.activity.listener.MyTabListener;
-import com.aizak.drawnote.fragment.BookshelfFragment;
-import com.aizak.drawnote.fragment.BookshelfFragment.OnNoteClickListener;
-import com.aizak.drawnote.fragment.NoteFragment;
+import com.aizak.drawnote.controller.Bookshelf.OnNoteClickListener;
+import com.aizak.drawnote.controller.Note.OnActrionBarListener;
+import com.aizak.drawnote.controller.Note.OnOverlayListener;
+import com.aizak.drawnote.controller.Note.Units;
 import com.aizak.drawnote.service.OverlayService;
+import com.aizak.drawnote.util.ActionBarUtil;
+import com.aizak.drawnote.util.C;
+import com.aizak.drawnote.util.SerializeManager;
+import com.aizak.drawnote.view.DrawingView;
 import com.aizak.drawnote.view.MyNotification;
 import com.aizak.drawnote.view.MyPopupWindow;
 
 public class DrawNoteActivity extends ActionBarActivity implements
-		FindViewByIdS, OnNoteClickListener {
+		FindViewByIdS, OnNoteClickListener, OnOverlayListener, OnActrionBarListener {
 
-	// DB
-	private final DBModel db = new DBModel(this);
 	private final String password = "test-password";
 
 	// View
 	private MyPopupWindow popupWindow;
 
 	// Fagment
-	private final NoteFragment noteFragment = new NoteFragment();
-	private final BookshelfFragment bookshelfFragment = new BookshelfFragment();
+	private final Note noteFragment = new Note();
+	private final Bookshelf bookshelfFragment = new Bookshelf();
 
-	// Data
-	public Bitmap Image;
 
 	// Listener
 	private final MyTabListener onTabClick = new MyTabListener();
+
+	private boolean requestOverlay;
 
 	/*-------------------- << Activity Method >> --------------------*/
 	/*
@@ -58,13 +58,6 @@ public class DrawNoteActivity extends ActionBarActivity implements
 			commitBookShelfFragment();
 		}
 		popupWindow = new MyPopupWindow(this);
-
-		Rect rect = new Rect();
-		getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
-
-		Image = Bitmap.createBitmap(rect.width(), rect.height(),
-				Config.ARGB_8888);
-
 	}
 
 	/*
@@ -85,6 +78,59 @@ public class DrawNoteActivity extends ActionBarActivity implements
 	@Override
 	protected void onStop() {
 		super.onStop();
+	}
+
+	/*-------------------- << fragmentからのコールバック >> --------------------*/
+	@Override
+	public void onNoteClicked(String name) {
+		Log.d("NAME#onNoteClicked", name);
+		Bundle bundle = new Bundle();
+		bundle.putString(C.DB.CLM_NOTES_NAME, name);
+		noteFragment.setArguments(bundle);
+		commitNoteFragment();
+	}
+
+	@Override
+	public void onOverlayEvent() {
+		Log.d("TEST", "DrawnoteActivity#onOverlayEvent()");
+		requestOverlay = !requestOverlay;
+		if (requestOverlay) {
+			startOverlayService();
+		} else {
+			stopOverlayService();
+		}
+	}
+
+	@Override
+	public boolean onActionBarVisiblityChenge(boolean visible, Units units) {
+		boolean isvisible = false;
+		if (visible) {
+			isvisible = true;
+			ActionBarUtil.setVisiblity(this, View.VISIBLE);
+			if (units == null) {
+				return isvisible;
+			}
+
+			units.setNormalViewVisiblity(View.VISIBLE);
+			units.setFullscreenViewVisiblity(View.GONE);
+		} else {
+			isvisible = false;
+			ActionBarUtil.setVisiblity(this, View.GONE);
+			if(units == null) {
+				return isvisible;
+			}
+
+			units.setNormalViewVisiblity(View.GONE);
+			units.setFullscreenViewVisiblity(View.VISIBLE);
+
+		}
+		return isvisible;
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends View> T findViewByIdS(int id) {
+		return (T) findViewById(id);
 	}
 
 	/*-------------------- << fragmentのコミット >> --------------------*/
@@ -115,16 +161,6 @@ public class DrawNoteActivity extends ActionBarActivity implements
 				ActionBar.NAVIGATION_MODE_STANDARD);
 	}
 
-	/*-------------------- << fragmentからのコールバック >> --------------------*/
-	@Override
-	public void onNoteClicked(String name) {
-		Log.d("NAME#onNoteClicked", name);
-		Bundle bundle = new Bundle();
-		bundle.putString(C.DB.CLM_NOTES_NAME, name);
-		noteFragment.setArguments(bundle);
-		commitNoteFragment();
-	}
-
 	/*------------------ << Notification >> --------------------*/
 	private void createNotification() {
 		// Notificationマネージャのインスタンスを取得
@@ -132,8 +168,6 @@ public class DrawNoteActivity extends ActionBarActivity implements
 		MyNotification notification = new MyNotification(this);
 		mgr.notify(1, notification);
 	}
-
-	/*------------------ << DB操作 >> --------------------*/
 
 	/*------------------ << オーバーレイ >> --------------------*/
 	/**
@@ -144,7 +178,8 @@ public class DrawNoteActivity extends ActionBarActivity implements
 
 		int viewTop = adjustMarginForOverlay();
 
-		byte[] stream = SerializeManager.serializeData(Image);
+		Bitmap bitmap = ((DrawingView) noteFragment.getView()).getBitmap();
+		byte[] stream = SerializeManager.serializeData(bitmap);
 		Intent intent = new Intent(DrawNoteActivity.this, OverlayService.class)
 				.putExtra(C.OVERLAY.EXTRA_IMAGE, stream)
 				.putExtra(C.OVERLAY.EXTRA_TOP, viewTop)
@@ -179,17 +214,7 @@ public class DrawNoteActivity extends ActionBarActivity implements
 	}
 
 
-	// **-------------------- getter/setter --------------------**//
-	/**
-	 * @return image
-	 */
-	public Bitmap getImage() {
-		return Image;
-	}
 
-	@Override
-	public <T extends View> T findViewByIdS(int id) {
-		return (T) findViewById(id);
-	}
+
 
 }

@@ -1,4 +1,4 @@
-package com.aizak.drawnote.fragment;
+package com.aizak.drawnote.controller;
 
 import android.app.Activity;
 import android.content.Context;
@@ -10,8 +10,6 @@ import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -26,22 +24,20 @@ import android.widget.GridView;
 import android.widget.TextView;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.FindViewByIdS;
-import com.aizak.drawnote.activity.database.DBModel;
 import com.aizak.drawnote.activity.list.ListAdapter;
 import com.aizak.drawnote.activity.list.MyCursorLoader;
 
-public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouchListener, LoaderCallbacks<Cursor> {
+public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListener, LoaderCallbacks<Cursor> {
 
 	public interface OnNoteClickListener {
 		public void onNoteClicked(String name);
 	}
 
-	DBModel db;
+	private DBController dbController;
 	private Context context;
-	private View view;
 
 	private GridView gridView;
+	private ListAdapter listAdapter;
 
 	private OnNoteClickListener noteClickListener;
 
@@ -57,9 +53,10 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 		else if ((activity instanceof OnNoteClickListener) == false) {
 			throw new ClassCastException("activity が OnDBListener を実装していません.");
 		}
-		noteClickListener = (OnNoteClickListener) activity;
+
 		context = activity;
-		db = new DBModel(activity);
+		noteClickListener = (OnNoteClickListener) activity;
+		dbController = new DBController(activity);
 
 	}
 
@@ -75,15 +72,6 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	}
 
 	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onCreateContextMenu(android.view.ContextMenu, android.view.View, android.view.ContextMenu.ContextMenuInfo)
-	 */
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-	}
-
-	/* (非 Javadoc)
 	 * @see android.support.v4.app.Fragment#onCreateOptionsMenu(android.view.Menu, android.view.MenuInflater)
 	 */
 	@Override
@@ -93,21 +81,13 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	}
 
 	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onContextItemSelected(android.view.MenuItem)
-	 */
-	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-		return super.onContextItemSelected(item);
-	}
-
-	/* (非 Javadoc)
 	 * @see android.support.v4.app.Fragment#onOptionsItemSelected(android.view.MenuItem)
 	 */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.d("TEST", "BookShelfFragment#onItemSelected");
-		db.insertNewNote();
-//		cursorAdapter.getCursor().requery();//後で変更
+		dbController.insertNewNote();
+		//listを更新
 		return super.onOptionsItemSelected(item);
 	}
 
@@ -117,8 +97,7 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		View view = inflater.inflate(R.layout.fragment_bookshelf, container, false);
-		return view;
+		return inflater.inflate(R.layout.fragment_bookshelf, container, false);
 	}
 
 	/* (非 Javadoc)
@@ -131,8 +110,8 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 		listAdapter = new ListAdapter(getActivity(), null, true);
 
 		gridView = (GridView) getView().findViewById(R.id.book_shelf_gridview);
-		gridView.setNumColumns(3);
-		gridView.setOnItemClickListener(OnClickNote);
+		gridView.setNumColumns(3);// 後で修正。listの大きさによってカラム数が変わるようにしたい
+		gridView.setOnItemClickListener(NoteClicked);
 		gridView.setAdapter(listAdapter);
 
 		getLoaderManager().initLoader(0, null, this);
@@ -144,16 +123,8 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
+		Log.d("TEST", "BookShelf#onDestroyView");
 		getLoaderManager().destroyLoader(0);
-	}
-
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onDestroy()
-	 */
-	@Override
-	public void onDestroy() {
-		// TODO 自動生成されたメソッド・スタブ
-		super.onDestroy();
 	}
 
 	/* (非 Javadoc)
@@ -161,26 +132,7 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	 */
 	@Override
 	public void onDetach() {
-		// TODO 自動生成されたメソッド・スタブ
 		super.onDetach();
-	}
-
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onPause()
-	 */
-	@Override
-	public void onPause() {
-		// TODO 自動生成されたメソッド・スタブ
-		super.onPause();
-	}
-
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onResume()
-	 */
-	@Override
-	public void onResume() {
-		// TODO 自動生成されたメソッド・スタブ
-		super.onResume();
 	}
 
 	/* (非 Javadoc)
@@ -193,24 +145,17 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 	}
 
-	/* (非 Javadoc)
-	 * @see android.support.v4.app.Fragment#onStop()
-	 */
-	@Override
-	public void onStop() {
-		super.onStop();
-	}
-
 	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		return false;
 	}
 
+	//loader methos
 	@Override
 	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
 		return new MyCursorLoader(context); //MycursorLoader内部でDBからのCursorをセットしている
+
 	}
-	
 
 	@Override
 	public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
@@ -219,14 +164,17 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 	}
 
 	@Override
-	public void onLoaderReset(Loader<Cursor> loaderr) {
-//		cursorAdapter.swapCursor(null);
+	public void onLoaderReset(Loader<Cursor> loader) {
 		listAdapter.swapCursor(null);
 
 	}
 
+	@Override
+	public <T extends View> T findViewByIdS(int id) {
+		return (T) getActivity().findViewById(id);
+	}
 
-	private final OnItemClickListener OnClickNote = new OnItemClickListener() {
+	private final OnItemClickListener NoteClicked = new OnItemClickListener() {
 
 		@Override
 		public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -236,10 +184,6 @@ public class BookshelfFragment extends Fragment implements FindViewByIdS, OnTouc
 			noteClickListener.onNoteClicked(name);
 		}
 	};
-	private ListAdapter listAdapter;
 
-	@Override
-	public <T extends View> T findViewByIdS(int id) {
-		return (T) getActivity().findViewById(id);
-	}
+
 }

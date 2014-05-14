@@ -5,4 +5,4 @@
  * @author takashi
  *
  */
-package com.aizak.drawnote.activity;
+package com.aizak.drawnote.controller;

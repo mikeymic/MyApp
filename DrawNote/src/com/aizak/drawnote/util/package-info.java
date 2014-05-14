@@ -5,4 +5,4 @@
  * @author takashi
  *
  */
-package com.aizak.drawnote.fragment;
+package com.aizak.drawnote.util;

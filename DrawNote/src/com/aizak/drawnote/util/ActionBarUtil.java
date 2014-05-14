@@ -1,4 +1,4 @@
-package com.aizak.drawnote.activity;
+package com.aizak.drawnote.util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +38,7 @@ public class ActionBarUtil {
 		return views;
 	}
 
-	public static void actionBarSetVisiblity(Activity activity, int visiblity) {
+	public static void setVisiblity(Activity activity, int visiblity) {
 		View root = activity.getWindow().getDecorView();
 		List<View> views = ActionBarUtil.findViewsWithClassName(root, "com.android.internal.widget.ActionBarContainer");
 		for (View v : views) {

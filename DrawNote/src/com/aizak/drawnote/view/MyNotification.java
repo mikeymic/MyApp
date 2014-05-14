@@ -7,12 +7,12 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.fragment.NoteFragment;
+import com.aizak.drawnote.controller.Note;
 
 public class MyNotification extends Notification {
 
 	public MyNotification(Context context) {
-		PendingIntent pi = PendingIntent.getActivity(context, 0, new Intent(context, NoteFragment.class), 0);
+		PendingIntent pi = PendingIntent.getActivity(context, 0, new Intent(context, Note.class), 0);
 		// NotificationBuilderのインスタンスを作成
 		NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
 		builder.setContentIntent(pi).setTicker("テキスト")// ステータスバーに表示されるテキスト

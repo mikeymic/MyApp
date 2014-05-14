@@ -1,10 +1,11 @@
 package com.aizak.drawnote.view;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.BlurMaskFilter;
 import android.graphics.BlurMaskFilter.Blur;
 import android.graphics.Canvas;
@@ -14,38 +15,38 @@ import android.graphics.Paint.Cap;
 import android.graphics.Paint.Join;
 import android.graphics.Paint.Style;
 import android.graphics.PorterDuff;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.aizak.drawnote.activity.DrawNoteActivity;
-import com.aizak.drawnote.model.DataModel;
+import com.aizak.drawnote.model.EditingLine;
 import com.aizak.drawnote.model.Line;
 import com.aizak.drawnote.model.MyPaint;
+import com.aizak.drawnote.model.SavedLine;
 import com.aizak.drawnote.undomanager.AddLineCommand;
 import com.aizak.drawnote.undomanager.CommandInvoker;
 import com.aizak.drawnote.undomanager.ICommand;
+import com.aizak.drawnote.util.C;
 
 public class DrawingView extends View {
 
 	private int drawMode;
-	public static final int MODE_CLEAR = 0;
-	public static final int MODE_DRAW = 1;
-	public static final int MODE_UNDO = 2;
-	public static final int MODE_REDO = 3;
 
-	public int color = Color.BLACK;
+	private int color = Color.BLACK;
+	private int width = 3;
 
-	public DataModel dataModel;
-	CommandInvoker invoker;
-	Line line;
+	private Line line;
+	private EditingLine editingLines;
+	private SavedLine savedLines;
+
+	private CommandInvoker invoker;
 
 	private Paint bmpFilter;
 
 	private Bitmap bitmap;
 	private Canvas bmpCanvas;
-	public ArrayList<Line> lines = new ArrayList<Line>();
 
 	public DrawingView(Context context) {
 		super(context);
@@ -63,18 +64,19 @@ public class DrawingView extends View {
 	}
 
 	private void init(Context context) {
-		dataModel = new DataModel();
+		savedLines = new SavedLine();
+		editingLines = new EditingLine();
 		invoker = new CommandInvoker();
 
-		if (context instanceof DrawNoteActivity) {
-			bitmap = ((DrawNoteActivity) context).getImage();
-		}
 		bmpFilter = new Paint();
 		bmpFilter.setFilterBitmap(true);
 		bmpFilter.setAntiAlias(true);
 		bmpFilter.setDither(true);
 		bmpFilter.setMaskFilter(new BlurMaskFilter(0.5f, Blur.NORMAL));
-		bitmap = ((DrawNoteActivity) context).Image;
+
+		Rect rect = new Rect();
+		((Activity) context).getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
+		bitmap = Bitmap.createBitmap(rect.width(), rect.height(),Config.ARGB_8888);
 		bmpCanvas = new Canvas(bitmap);
 	}
 
@@ -95,17 +97,17 @@ public class DrawingView extends View {
 	public void setDrawMode(int drawMode) {
 		this.drawMode = drawMode;
 		switch (drawMode) {
-			case MODE_CLEAR:
+			case C.DW.MODE_CLEAR:
 				Log.d("TEST", "through MODE_CLEAR");
 				ICommand command =
-						new AddLineCommand(dataModel,
+						new AddLineCommand(editingLines,
 								new Line());
 				invoker.clear(command);
 				break;
-			case MODE_UNDO:
+			case C.DW.MODE_UNDO:
 				invoker.undo();
 				break;
-			case MODE_REDO:
+			case C.DW.MODE_REDO:
 				invoker.redo();
 				break;
 		}
@@ -117,33 +119,33 @@ public class DrawingView extends View {
 		super.onDraw(canvas);
 
 		switch (drawMode) {
-			case MODE_CLEAR:
+			case C.DW.MODE_CLEAR:
 				Log.d("TEST", "DrawingView#onDraw#MODE_CLEAR");
 //				bmpCanvas.drawColor(Color.BLUE);
-				if (lines != null) {
+				if (savedLines != null) {
 					bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-					int sizes = lines.size();
+					int sizes = SavedLine.getLines().size();
 					for (int i = 0; i < sizes; i++) {
-						lines.get(i).drawLine(bmpCanvas);
+						SavedLine.getLines().get(i).drawLine(bmpCanvas);
 					}
 				}
 				break;
-			case MODE_DRAW:
+			case C.DW.MODE_DRAW:
 				line.drawLine(bmpCanvas);
 				break;
-			case MODE_UNDO:
-			case MODE_REDO:
+			case C.DW.MODE_UNDO:
+			case C.DW.MODE_REDO:
 				bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 
-				if (lines != null) {
+				if (savedLines != null) {
 					bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-					int sizes = lines.size();
+					int sizes = SavedLine.getLines().size();
 					for (int i = 0; i < sizes; i++) {
-						lines.get(i).drawLine(bmpCanvas);
+						SavedLine.getLines().get(i).drawLine(bmpCanvas);
 					}
 				}
 
-				List<Line> lineData = dataModel.lines;
+				List<Line> lineData = editingLines.lines;
 				int size = lineData.size();
 				for (int i = 0; i < size; i++) {
 					lineData.get(i).drawLine(bmpCanvas);
@@ -156,8 +158,8 @@ public class DrawingView extends View {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 
-		if (drawMode != MODE_DRAW) {
-			drawMode = MODE_DRAW;
+		if (drawMode != C.DW.MODE_DRAW) {
+			drawMode = C.DW.MODE_DRAW;
 		}
 
 		float x = event.getX();
@@ -182,7 +184,7 @@ public class DrawingView extends View {
 			case MotionEvent.ACTION_UP:
 				line.setLastPoint(x, y);
 //				lines.add(line);
-				ICommand command = new AddLineCommand(dataModel, line);
+				ICommand command = new AddLineCommand(editingLines, line);
 				invoker.invoke(command);
 				break;
 		}
@@ -190,4 +192,24 @@ public class DrawingView extends View {
 		return true;
 	}
 
+
+	public EditingLine getEditingLines() {
+		return editingLines;
+	}
+
+	public SavedLine getSavedLines() {
+		return savedLines;
+	}
+
+	public Bitmap getBitmap() {
+		return bitmap;
+	}
+
+	public void setWidth(int width) {
+		this.width = width;
+	}
+
+	public void setColor(int color) {
+		this.color = color;
+	}
 }

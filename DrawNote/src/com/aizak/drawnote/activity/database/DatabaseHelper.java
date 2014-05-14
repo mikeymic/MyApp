@@ -4,7 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.aizak.drawnote.activity.C;
+import com.aizak.drawnote.util.C;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 

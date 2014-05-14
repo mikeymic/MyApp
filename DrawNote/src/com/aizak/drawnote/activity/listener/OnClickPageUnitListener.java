@@ -9,9 +9,9 @@ import android.view.View.OnClickListener;
 import android.widget.Toast;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.database.DBModel;
-import com.aizak.drawnote.activity.database.SerializeManager;
+import com.aizak.drawnote.controller.DBController;
 import com.aizak.drawnote.model.Line;
+import com.aizak.drawnote.util.SerializeManager;
 import com.aizak.drawnote.view.MyPopupWindow;
 
 public class OnClickPageUnitListener implements OnClickListener {
@@ -22,7 +22,7 @@ public class OnClickPageUnitListener implements OnClickListener {
 	String currentNoteName;
 	int currentPageIndex;
 	int pageCount;
-	DBModel db;
+	DBController db;
 	ArrayList<Line> lines;
 
 	public OnClickPageUnitListener(Context context, View view, ArrayList<Line> lines, String currentNoteName, int currentPageIndex, int pageCount, MyPopupWindow popupWindow) {

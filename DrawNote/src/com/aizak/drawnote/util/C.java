@@ -1,4 +1,4 @@
-package com.aizak.drawnote.activity;
+package com.aizak.drawnote.util;
 
 import com.aizak.drawnote.R;
 
@@ -25,9 +25,11 @@ public final class C {
 		public static final String CLM_PAGES_LINE = "line";
 	}
 
-	public static final class PREF {
-		public static final String test = "";
-		public static final int test2 = 0;
+	public static final class DW {
+		public static final int MODE_CLEAR = 0;
+		public static final int MODE_DRAW = 1;
+		public static final int MODE_UNDO = 2;
+		public static final int MODE_REDO = 3;
 	}
 
 	public static final class GCS {
@@ -49,4 +51,10 @@ public final class C {
 		public static final String EXTRA_IMAGE = "OverlayImage";
 		public static final String EXTRA_TOP = "Overlayheight";
 	}
+
+	public static final class PREF {
+		public static final String test = "";
+		public static final int test2 = 0;
+	}
+
 }

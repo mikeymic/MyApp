@@ -9,7 +9,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.C;
+import com.aizak.drawnote.util.C;
 
 public class ListAdapter extends CursorAdapter {
 

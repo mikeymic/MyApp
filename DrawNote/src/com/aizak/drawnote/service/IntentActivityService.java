@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.widget.Toast;
 
-import com.aizak.drawnote.activity.DrawNoteActivity;
 import com.aizak.drawnote.activity.listener.AcceleroListener;
 import com.aizak.drawnote.activity.listener.AcceleroListener.OnAcceleroListener;
+import com.aizak.drawnote.controller.DrawNoteActivity;
 
 public class IntentActivityService extends Service {
 

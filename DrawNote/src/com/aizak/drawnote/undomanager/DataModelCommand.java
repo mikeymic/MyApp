@@ -1,11 +1,11 @@
 package com.aizak.drawnote.undomanager;
 
-import com.aizak.drawnote.model.DataModel;
+import com.aizak.drawnote.model.EditingLine;
 
 public abstract class DataModelCommand implements ICommand {
-    protected DataModel mDataModel;
+    protected EditingLine mDataModel;
 
-    public DataModelCommand(DataModel dataModel) {
+    public DataModelCommand(EditingLine dataModel) {
         mDataModel = dataModel;
     }
 }

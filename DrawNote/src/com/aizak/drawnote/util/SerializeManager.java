@@ -1,4 +1,4 @@
-package com.aizak.drawnote.activity.database;
+package com.aizak.drawnote.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.aizak.drawnote.activity.C;
+import com.aizak.drawnote.util.C;
 
 public class DatabaseDao {
 
@@ -40,7 +40,7 @@ public class DatabaseDao {
 
 	/*--------------------<<<ページ操作> >> -------------------*/
 	// 新規ページ作成
-	public long insertPage(ContentValues values) {
+	public long insertNewPage(ContentValues values) {
 		return db.insert(C.DB.TABLE_NAME_PAGES, null, values);
 	}
 

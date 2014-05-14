@@ -1,23 +1,21 @@
-package com.aizak.drawnote.activity.database;
+package com.aizak.drawnote.controller;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
-import com.aizak.drawnote.activity.C;
+import com.aizak.drawnote.activity.database.DatabaseDao;
+import com.aizak.drawnote.activity.database.DatabaseHelper;
+import com.aizak.drawnote.util.C;
 
-public class DBModel {
+public class DBController {
 
 	//ビルドバージョンで、WhereArgsのStringの扱いが変わる
 	//1.6 : " 'string' "
 	//1.7 : " string "
-
-	public DBModel(Context context) {
-		this.context = context;
-	}
-
 	private final Context context;
+	private DatabaseHelper helper;
 
 	private static final String[] COLUMNS_NOTES = { C.DB.CLM_NOTES_ID,
 			C.DB.CLM_NOTES_NAME, C.DB.CLM_NOTES_CREATE_DATE,
@@ -42,6 +40,11 @@ public class DBModel {
 
 	static int n = 0;
 
+	public DBController(Context context) {
+		this.context = context;
+		helper = new DatabaseHelper(context);
+	}
+
 	//新規ノート作成
 	public void insertNewNote() {
 		n++;
@@ -50,7 +53,6 @@ public class DBModel {
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_NOTES_NAME, name);
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 
 		dao.insertNewNote(values);
@@ -66,7 +68,6 @@ public class DBModel {
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_NOTES_NAME, name);
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 		dao.updateNote(where, args, values);
 
@@ -78,7 +79,6 @@ public class DBModel {
 		String where = whereNote + " and " + whereNoteIndex;
 		String[] args = { "'" + name + "'", String.valueOf(index) };
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 
 		dao.deleteNote(where, args);
@@ -101,7 +101,6 @@ public class DBModel {
 	//全ノート読み込み
 	public Cursor getNotes() {
 		String[] Columns = COLUMNS_NOTES;
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
 		Cursor cursor = dao.getAllNotes(Columns);
 		return cursor;
@@ -111,7 +110,6 @@ public class DBModel {
 	public int getNoteCount() {
 		String[] Columns = new String[] { C.DB.CLM_PAGES_NAME };
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
 
 		int count = dao.getAllNotes(Columns).getCount();
@@ -127,9 +125,8 @@ public class DBModel {
 		values.put(C.DB.CLM_PAGES_NAME, name);
 		values.put(C.DB.CLM_PAGES_INDEX, index);
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
-		dao.insertPage(values);
+		dao.insertNewPage(values);
 
 		helper.close();
 	}
@@ -141,7 +138,6 @@ public class DBModel {
 		ContentValues values = new ContentValues();
 		values.put(C.DB.CLM_PAGES_LINE, stream);
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 
 		dao.updatePage(where, args, values);
@@ -156,7 +152,6 @@ public class DBModel {
 		String[] args = { name, String.valueOf(index) };
 		String[] Columns = COLUMNS_PAGES;
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
 		Cursor cursor = dao.getPage(where, args, Columns);
 
@@ -165,7 +160,7 @@ public class DBModel {
 			stream = cursor.getBlob(cursor.getColumnIndex(C.DB.CLM_PAGES_LINE));
 		}
 
-		helper.close();
+		cursor.close(); // cursorを使っている場合はhelper.close();はよばない事
 		return stream;
 	}
 
@@ -175,7 +170,6 @@ public class DBModel {
 		String[] args = { name };
 		String[] Columns = COLUMNS_PAGES;
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
 		Cursor cursor = dao.getPage(where, args, Columns);
 
@@ -184,7 +178,7 @@ public class DBModel {
 			stream = cursor.getBlob(cursor.getColumnIndex(C.DB.CLM_PAGES_LINE));
 		}
 
-		helper.close();
+		cursor.close(); // cursorを使っている場合はhelper.close();はよばない事
 		return stream;
 	}
 
@@ -193,7 +187,6 @@ public class DBModel {
 		String where = wherePage + " and " + wherePageIndex;
 		String[] args = { name, String.valueOf(index) };
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 		dao.deletePage(where, args);
 
@@ -205,7 +198,6 @@ public class DBModel {
 		String where = C.DB.CLM_PAGES_NAME + " = ? ";
 		String[] args = { name };
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 		dao.deletePage(where, args);
 
@@ -218,7 +210,6 @@ public class DBModel {
 		String[] args = { name };
 		String[] Columns = new String[] { C.DB.CLM_PAGES_NAME };
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
 		int count = dao.getPage(where, args, Columns).getCount();
 
@@ -229,7 +220,6 @@ public class DBModel {
 	//ページ番号更新
 	public void updatePageIndexWhenInsert(String name, int index, int pageCount) {
 
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 		ContentValues values = new ContentValues();
 
@@ -249,7 +239,6 @@ public class DBModel {
 
 	//ページ番号更新
 	public void updatePageIndexWhenDelete(String name, int index, int pageCount) {
-		DatabaseHelper helper = new DatabaseHelper(context);
 		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
 		ContentValues values = new ContentValues();
 
@@ -266,4 +255,7 @@ public class DBModel {
 		helper.close();
 	}
 
+	public void close() {
+		helper.close();
+	}
 }
