@@ -5,4 +5,4 @@
  * @author 1218AND
  * 
  */
-package com.aizak.drawnote.activity.database;
+package com.aizak.drawnote.model.database;

@@ -1,21 +1,19 @@
-package com.aizak.drawnote.controller;
+package com.aizak.drawnote.model.database;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.util.Log;
 
-import com.aizak.drawnote.activity.database.DatabaseDao;
-import com.aizak.drawnote.activity.database.DatabaseHelper;
 import com.aizak.drawnote.util.C;
 
-public class DBController {
+public class DBControl {
 
 	//ビルドバージョンで、WhereArgsのStringの扱いが変わる
 	//1.6 : " 'string' "
 	//1.7 : " string "
 	private final Context context;
-	private DatabaseHelper helper;
+	private final DatabaseHelper helper;
 
 	private static final String[] COLUMNS_NOTES = { C.DB.CLM_NOTES_ID,
 			C.DB.CLM_NOTES_NAME, C.DB.CLM_NOTES_CREATE_DATE,
@@ -40,7 +38,7 @@ public class DBController {
 
 	static int n = 0;
 
-	public DBController(Context context) {
+	public DBControl(Context context) {
 		this.context = context;
 		helper = new DatabaseHelper(context);
 	}
@@ -145,6 +143,20 @@ public class DBController {
 		helper.close();
 	}
 
+	public void updatePage(String name, int index, byte[] line, byte[] image) {
+		String where = wherePage + " and " + wherePageIndex;
+		String[] args = { name, String.valueOf(index) };
+		ContentValues values = new ContentValues();
+		values.put(C.DB.CLM_PAGES_LINE, line);
+		values.put(C.DB.CLM_PAGES_IMAGE, image);
+
+		DatabaseDao dao = new DatabaseDao(helper.getWritableDatabase());
+
+		dao.updatePage(where, args, values);
+
+		helper.close();
+	}
+
 	// ページ読み込み
 	public byte[] getPage(String name, int index) {
 		Log.d("TEST", "Name = " + name + "Index = " + String.valueOf(index));
@@ -162,6 +174,28 @@ public class DBController {
 
 		cursor.close(); // cursorを使っている場合はhelper.close();はよばない事
 		return stream;
+	}
+
+	// ページ読み込み
+	public byte[][] getPageWidthImage(String name, int index) {
+		Log.d("TEST", "Name = " + name + "Index = " + String.valueOf(index));
+		String where = wherePage + " and " + wherePageIndex;
+		String[] args = { name, String.valueOf(index) };
+		String[] Columns = COLUMNS_PAGES;
+
+		DatabaseDao dao = new DatabaseDao(helper.getReadableDatabase());
+		Cursor cursor = dao.getPage(where, args, Columns);
+
+		byte[] lines = null;
+		byte[] image = null;
+
+		while (cursor.moveToNext() != false) {
+			lines = cursor.getBlob(cursor.getColumnIndex(C.DB.CLM_PAGES_LINE));
+			image = cursor.getBlob(cursor.getColumnIndex(C.DB.CLM_PAGES_IMAGE));
+		}
+
+		cursor.close();
+		return new byte[][] { lines, image };
 	}
 
 	// 全ページ読み込み

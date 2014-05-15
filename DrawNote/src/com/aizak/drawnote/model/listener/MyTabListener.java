@@ -1,4 +1,4 @@
-package com.aizak.drawnote.activity.listener;
+package com.aizak.drawnote.model.listener;
 
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar.Tab;

@@ -1,13 +1,13 @@
-package com.aizak.drawnote.service;
+package com.aizak.drawnote.controller.service;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 import android.widget.Toast;
 
-import com.aizak.drawnote.activity.listener.AcceleroListener;
-import com.aizak.drawnote.activity.listener.AcceleroListener.OnAcceleroListener;
 import com.aizak.drawnote.controller.DrawNoteActivity;
+import com.aizak.drawnote.model.listener.AcceleroListener;
+import com.aizak.drawnote.model.listener.AcceleroListener.OnAcceleroListener;
 
 public class IntentActivityService extends Service {
 

@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
+import android.graphics.BitmapFactory;
 import android.graphics.BlurMaskFilter;
 import android.graphics.BlurMaskFilter.Blur;
 import android.graphics.Canvas;
@@ -38,8 +39,8 @@ public class DrawingView extends View {
 	private int width = 3;
 
 	private Line line;
-	private EditingLine editingLines;
-	private SavedLine savedLines;
+	public EditingLine editingLines;
+	public SavedLine savedLines;
 
 	private CommandInvoker invoker;
 
@@ -76,7 +77,7 @@ public class DrawingView extends View {
 
 		Rect rect = new Rect();
 		((Activity) context).getWindow().getDecorView().getWindowVisibleDisplayFrame(rect);
-		bitmap = Bitmap.createBitmap(rect.width(), rect.height(),Config.ARGB_8888);
+		bitmap = Bitmap.createBitmap(rect.width(), rect.height(), Config.ARGB_8888);
 		bmpCanvas = new Canvas(bitmap);
 	}
 
@@ -122,13 +123,13 @@ public class DrawingView extends View {
 			case C.DW.MODE_CLEAR:
 				Log.d("TEST", "DrawingView#onDraw#MODE_CLEAR");
 //				bmpCanvas.drawColor(Color.BLUE);
-				if (savedLines != null) {
-					bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-					int sizes = SavedLine.getLines().size();
-					for (int i = 0; i < sizes; i++) {
-						SavedLine.getLines().get(i).drawLine(bmpCanvas);
-					}
-				}
+//				if (savedLines != null) {
+//					bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+//					int sizes = savedLines.getLines().size();
+//					for (int i = 0; i < sizes; i++) {
+//						savedLines.getLines().get(i).drawLine(bmpCanvas);
+//					}
+//				}
 				break;
 			case C.DW.MODE_DRAW:
 				line.drawLine(bmpCanvas);
@@ -139,13 +140,13 @@ public class DrawingView extends View {
 
 				if (savedLines != null) {
 					bmpCanvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
-					int sizes = SavedLine.getLines().size();
+					int sizes = savedLines.getLines().size();
 					for (int i = 0; i < sizes; i++) {
-						SavedLine.getLines().get(i).drawLine(bmpCanvas);
+						savedLines.getLines().get(i).drawLine(bmpCanvas);
 					}
 				}
 
-				List<Line> lineData = editingLines.lines;
+				List<Line> lineData = editingLines.getLines();
 				int size = lineData.size();
 				for (int i = 0; i < size; i++) {
 					lineData.get(i).drawLine(bmpCanvas);
@@ -183,7 +184,7 @@ public class DrawingView extends View {
 				break;
 			case MotionEvent.ACTION_UP:
 				line.setLastPoint(x, y);
-//				lines.add(line);
+//				savedLines.getLines().add(line);
 				ICommand command = new AddLineCommand(editingLines, line);
 				invoker.invoke(command);
 				break;
@@ -192,6 +193,10 @@ public class DrawingView extends View {
 		return true;
 	}
 
+	public void setBitmap(byte[] data) {
+		bitmap = BitmapFactory.decodeByteArray(data, 0, data.length).copy(Config.ARGB_8888, true);
+		bmpCanvas = new Canvas(bitmap);
+	}
 
 	public EditingLine getEditingLines() {
 		return editingLines;
@@ -205,11 +210,35 @@ public class DrawingView extends View {
 		return bitmap;
 	}
 
+	public CommandInvoker getInvoker() {
+		return invoker;
+	}
+
+	public void setBitmap(Bitmap bitmap) {
+		this.bitmap = bitmap;
+	}
+
+	public void setEditingLines(EditingLine editingLines) {
+		this.editingLines = editingLines;
+	}
+
+	public void setSavedLines(SavedLine savedLines) {
+		this.savedLines = savedLines;
+	}
+
 	public void setWidth(int width) {
 		this.width = width;
 	}
 
 	public void setColor(int color) {
 		this.color = color;
+	}
+
+	public void setBmpCanvas(Canvas bmpCanvas) {
+		this.bmpCanvas = bmpCanvas;
+	}
+
+	public Canvas getBmpCanvas() {
+		return bmpCanvas;
 	}
 }

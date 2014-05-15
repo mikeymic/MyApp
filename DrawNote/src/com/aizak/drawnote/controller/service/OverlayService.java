@@ -1,4 +1,4 @@
-package com.aizak.drawnote.service;
+package com.aizak.drawnote.controller.service;
 
 import android.app.Notification;
 import android.app.NotificationManager;

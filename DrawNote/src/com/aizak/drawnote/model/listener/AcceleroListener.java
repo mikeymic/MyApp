@@ -1,4 +1,4 @@
-package com.aizak.drawnote.activity.listener;
+package com.aizak.drawnote.model.listener;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.aizak.drawnote.service;
+package com.aizak.drawnote.controller.service;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

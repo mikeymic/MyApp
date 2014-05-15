@@ -1,14 +1,14 @@
-package com.aizak.drawnote.activity.list;
+package com.aizak.drawnote.model.loader;
 
 import android.content.Context;
 import android.database.Cursor;
 
-import com.aizak.drawnote.controller.DBController;
+import com.aizak.drawnote.model.database.DBControl;
 
 public class MyCursorLoader extends SimpleCursorLoader {
 
 	Context context;
-	private DBController db;
+	private DBControl db;
 
 	public MyCursorLoader(Context context) {
 		super(context);
@@ -17,7 +17,7 @@ public class MyCursorLoader extends SimpleCursorLoader {
 
 	@Override
 	public Cursor loadInBackground() {
-		db = new DBController(context);
+		db = new DBControl(context);
 		return db.getNotes();
 	}
 

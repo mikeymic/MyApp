@@ -3,34 +3,34 @@ package com.aizak.drawnote.undomanager;
 import com.aizak.drawnote.model.EditingLine;
 import com.aizak.drawnote.model.Line;
 
-import android.util.Log;
-
 public class AddLineCommand extends DataModelCommand {
 
-    Line line;
+	Line line;
 
-    public AddLineCommand(EditingLine dataModel, Line line) {
-        super(dataModel);
-        this.line = line;
-    }
+	public AddLineCommand(EditingLine editingLine, Line line) {
+		super(editingLine);
+		this.line = line;
+	}
 
-    public void invoke() {
-        mDataModel.lines.add(line);
-    }
+	@Override
+	public void invoke() {
+		editingLine.getLines().add(line);
+	}
 
-    public void redo() {
-        mDataModel.lines.add(line);
-    }
+	@Override
+	public void redo() {
+		editingLine.getLines().add(line);
+	}
 
-    public void undo() {
-        mDataModel.lines.remove(line);
-    }
+	@Override
+	public void undo() {
+		editingLine.getLines().remove(line);
+	}
 
-
+	@Override
 	public void clear() {
-		mDataModel.lines.clear();
-		mDataModel.lines.add(line);
-		Log.d("TEST", "through Command CLEAR");
+		editingLine.getLines().clear();
+		editingLine.getLines().add(line);
 	}
 
 }

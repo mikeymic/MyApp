@@ -5,4 +5,4 @@
  * @author takashi
  *
  */
-package com.aizak.drawnote.activity.list;
+package com.aizak.drawnote.model.loader;

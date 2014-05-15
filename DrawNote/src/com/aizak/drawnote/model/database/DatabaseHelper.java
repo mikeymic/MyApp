@@ -1,4 +1,4 @@
-package com.aizak.drawnote.activity.database;
+package com.aizak.drawnote.model.database;
 
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;

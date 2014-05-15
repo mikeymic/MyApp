@@ -1,4 +1,4 @@
-package com.aizak.drawnote.controller;
+package com.aizak.drawnote.util;
 
 import android.view.View;
 

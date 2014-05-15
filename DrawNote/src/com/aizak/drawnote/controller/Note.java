@@ -4,7 +4,9 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -26,11 +28,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.model.EditingLine;
 import com.aizak.drawnote.model.Line;
-import com.aizak.drawnote.model.SavedLine;
+import com.aizak.drawnote.model.database.DBControl;
 import com.aizak.drawnote.util.ActionBarUtil;
 import com.aizak.drawnote.util.C;
+import com.aizak.drawnote.util.FindViewByIdS;
 import com.aizak.drawnote.util.SerializeManager;
 import com.aizak.drawnote.view.ColorPickerDialog;
 import com.aizak.drawnote.view.DrawingView;
@@ -38,7 +40,7 @@ import com.aizak.drawnote.view.MyPopupWindow;
 
 /**
  * @author 1218AND
- *
+ * 
  */
 public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 
@@ -65,10 +67,8 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 			pageControl = findViewByIdS(R.id.page_control);
 			pageListButton = findViewByIdS(R.id.note_button_page_list);
 			pageListButton.setOnClickListener(OnClickPagesUnit);
-			findViewByIdS(R.id.note_button_page_previous).setOnClickListener(
-					OnClickPagesUnit);
-			findViewByIdS(R.id.note_button_page_next).setOnClickListener(
-					OnClickPagesUnit);
+			findViewByIdS(R.id.note_button_page_previous).setOnClickListener(OnClickPagesUnit);
+			findViewByIdS(R.id.note_button_page_next).setOnClickListener(OnClickPagesUnit);
 		}
 
 		private void setToolControl() {
@@ -98,13 +98,12 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 	private OnOverlayListener overlayListener;
 	private OnActrionBarListener actionBarListener;
 
-	private DBController db;
-	private ArrayList<Line> saveLines = new ArrayList<>();
+	private DBControl db;
+	private final ArrayList<Line> saveLines = new ArrayList<>();
 
 	private String cNoteName;
 	private int cPageIndex;
 	private int pageCount;
-
 
 	private DrawingView drawingView;
 	private MyPopupWindow popupWindow;
@@ -115,7 +114,6 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 	private TextView testName;
 	private TextView testIndex;
 	private TextView testCount;
-
 
 	private boolean isScreenMode = false;
 
@@ -128,7 +126,7 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		context = activity;
-		db = new DBController(context);
+		db = new DBControl(context);
 
 		if ((activity instanceof OnOverlayListener) == false) {
 			throw new ClassCastException(
@@ -187,6 +185,7 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 
 		// set tools
 
+		units = new Units();
 		pageListButton = findViewByIdS(R.id.note_button_page_list);
 		setColorPicker();
 		setTest();// debug
@@ -224,47 +223,48 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 		savePage();
 		int id = item.getItemId();
 		switch (id) {
-		case R.id.action_insert_new_page:
-			int index = cPageIndex;
-			if (index < pageCount) {
-				db.updatePageIndexWhenInsert(cNoteName, cPageIndex, pageCount);
-			} else {
-				index++;
-			}
-			db.insertNewPage(cNoteName, index);
-			// !!!sqliteにきちんと入ったか確認
-			if (index == 1000) {
-				return true;
-			}
-			cPageIndex = index;
-			updatePageInformation();
-			break;
-		case R.id.action_delete_page:
-			db.deletePage(cNoteName, cPageIndex);
-			if (cPageIndex < pageCount) {
-				db.updatePageIndexWhenDelete(cNoteName, cPageIndex, pageCount);
-			}
-			updatePageInformation();
-			break;
-		case R.id.action_undo:
-			drawingView.setDrawMode(C.DW.MODE_UNDO);
-			break;
-		case R.id.action_redo:
-			drawingView.setDrawMode(C.DW.MODE_REDO);
-			break;
-		case R.id.action_fullscreen:
-			// 後でアニメーションを設定
-			isScreenMode = actionBarListener.onActionBarVisiblityChenge(false,
-					units);
-			break;
-		case R.id.action_overlay:
-			overlayListener.onOverlayEvent(); // activityへcallback
-			break;
-		case R.id.action_settings:
-			mColorPickerDialog.show();
-			break;
-		default:
-			return false;
+			case R.id.action_insert_new_page:
+				int index = cPageIndex;
+				if (index < pageCount) {
+					db.updatePageIndexWhenInsert(cNoteName, cPageIndex, pageCount);
+				} else {
+					index++;
+				}
+				db.insertNewPage(cNoteName, index);
+				// !!!sqliteにきちんと入ったか確認
+				if (index == 1000) {
+					return true;
+				}
+				cPageIndex = index;
+				updatePageInformation();
+				break;
+			case R.id.action_delete_page:
+				db.deletePage(cNoteName, cPageIndex);
+				if (cPageIndex < pageCount) {
+					db.updatePageIndexWhenDelete(cNoteName, cPageIndex, pageCount);
+				}
+				cPageIndex--;
+				updatePageInformation();
+				break;
+			case R.id.action_undo:
+				drawingView.setDrawMode(C.DW.MODE_UNDO);
+				break;
+			case R.id.action_redo:
+				drawingView.setDrawMode(C.DW.MODE_REDO);
+				break;
+			case R.id.action_fullscreen:
+				// 後でアニメーションを設定
+				isScreenMode = actionBarListener.onActionBarVisiblityChenge(false,
+						units);
+				break;
+			case R.id.action_overlay:
+				overlayListener.onOverlayEvent(); // activityへcallback
+				break;
+			case R.id.action_settings:
+				mColorPickerDialog.show();
+				break;
+			default:
+				return false;
 		}
 		drawingView.invalidate();
 		updateTestText();// debug
@@ -333,30 +333,58 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 	}
 
 	public void updatePageInformation() {
+
 		getPage(cNoteName, cPageIndex);
 		updatePageIndex();
-
 		drawingView.setDrawMode(C.DW.MODE_CLEAR);
-		drawingView.invalidate();
+
+		if (saveLines != null) {
+			saveLines.clear();
+		}
 	}
 
 	public void savePage() {
-		saveLines.addAll(EditingLine.getLines());
-		saveLines.addAll(SavedLine.getLines());
-		byte[] stream = SerializeManager.serializeData(saveLines);
-		db.updatePage(cNoteName, cPageIndex, stream);
+		saveLines.clear();
+		saveLines.addAll(drawingView.getSavedLines().getLines());
+		saveLines.addAll(drawingView.getEditingLines().getLines());
+		byte[] lines = SerializeManager.serializeData(saveLines);
+		byte[] image = SerializeManager.serializeData(drawingView.getBitmap());
+//		db.updatePage(cNoteName, cPageIndex, lines);
+		db.updatePage(cNoteName, cPageIndex, lines, image);
+
 	}
 
 	@SuppressWarnings("unchecked")
 	public void getPage(String name, int index) {
+		if (drawingView.getEditingLines().getLines() != null) {
+			drawingView.getEditingLines().getLines().clear();
+		}
+		if (drawingView.getSavedLines().getLines() != null) {
+			drawingView.getSavedLines().getLines().clear();
+		}
+		if (drawingView.getBitmap() != null) {
+			drawingView.getBmpCanvas().drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
+		}
 
-		SavedLine.getLines().clear();
-		byte[] stream = db.getPage(name, index);
+//		byte[] stream = db.getPage(name, index);
+//		if (stream != null) {
+//			drawingView.getSavedLines().getLines().addAll((ArrayList<Line>) SerializeManager.deserializeData(stream));
+//		} else {
+//			saveLines.clear();
+//		}
+		byte[][] stream = db.getPageWidthImage(name, index);
 		if (stream != null) {
-			SavedLine.getLines().addAll(
-					(ArrayList<Line>) SerializeManager.deserializeData(stream));
-		} else {
-			saveLines.clear();
+			if (stream[0] != null) {
+				drawingView.getSavedLines().getLines()
+						.addAll((ArrayList<Line>) SerializeManager.deserializeData(stream[0]));
+			}
+			if (stream[1] != null) {
+//				drawingView.setBitmap(BitmapFactory.decodeByteArray(stream[1], 0, stream[1].length));
+				drawingView.setBitmap(stream[1]);
+				drawingView.setBmpCanvas(new Canvas(drawingView.getBitmap()));
+			} else {
+				saveLines.clear();
+			}
 		}
 	}
 
@@ -417,21 +445,21 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 			String msg = null;
 			int id = v.getId();
 			switch (id) {
-			case R.id.note_button_page_next:
-				if (cPageIndex == pageCount) {
-					msg = getString(R.string.msg_no_next_page);
+				case R.id.note_button_page_next:
+					if (cPageIndex == pageCount) {
+						msg = getString(R.string.msg_no_next_page);
+						break;
+					}
+					cPageIndex++;
 					break;
-				}
-				cPageIndex++;
-				break;
 
-			case R.id.note_button_page_previous:
-				if (cPageIndex == 1) {
-					msg = getString(R.string.msg_no_previous_page);
+				case R.id.note_button_page_previous:
+					if (cPageIndex == 1) {
+						msg = getString(R.string.msg_no_previous_page);
+						break;
+					}
+					cPageIndex--;
 					break;
-				}
-				cPageIndex--;
-				break;
 			}
 
 			if (msg != null) {
@@ -450,32 +478,28 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 			updateTestText();// debug
 			int id = v.getId();
 			switch (id) {
-			case R.id.tool_fullscreen:
-				isScreenMode = actionBarListener.onActionBarVisiblityChenge(
-						true, units);
-				break;
-			case R.id.tool_color:
+				case R.id.tool_fullscreen:
+					isScreenMode = actionBarListener.onActionBarVisiblityChenge(
+							true, units);
+					break;
+				case R.id.tool_color:
 
-				break;
-			case R.id.tool_editer:
+					break;
+				case R.id.tool_editer:
 
-				break;
-			case R.id.tool_pen:
+					break;
+				case R.id.tool_pen:
 
-				break;
-			case R.id.tool_shepe:
+					break;
+				case R.id.tool_shepe:
 
-				break;
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 			updateTestText();// debug
 		}
 	};
-
-
-
-
 
 }

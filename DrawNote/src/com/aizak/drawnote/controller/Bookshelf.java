@@ -24,8 +24,10 @@ import android.widget.GridView;
 import android.widget.TextView;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.list.ListAdapter;
-import com.aizak.drawnote.activity.list.MyCursorLoader;
+import com.aizak.drawnote.model.database.DBControl;
+import com.aizak.drawnote.model.loader.ListAdapter;
+import com.aizak.drawnote.model.loader.MyCursorLoader;
+import com.aizak.drawnote.util.FindViewByIdS;
 
 public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListener, LoaderCallbacks<Cursor> {
 
@@ -33,7 +35,7 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 		public void onNoteClicked(String name);
 	}
 
-	private DBController dbController;
+	private DBControl dbController;
 	private Context context;
 
 	private GridView gridView;
@@ -56,7 +58,7 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 
 		context = activity;
 		noteClickListener = (OnNoteClickListener) activity;
-		dbController = new DBController(activity);
+		dbController = new DBControl(activity);
 
 	}
 
@@ -87,6 +89,7 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.d("TEST", "BookShelfFragment#onItemSelected");
 		dbController.insertNewNote();
+		getLoaderManager().restartLoader(0, null, this);
 		//listを更新
 		return super.onOptionsItemSelected(item);
 	}
@@ -133,6 +136,10 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 	@Override
 	public void onDetach() {
 		super.onDetach();
+		if (listAdapter.getCursor() != null) {
+			listAdapter.getCursor().close();
+		}
+
 	}
 
 	/* (非 Javadoc)
@@ -150,10 +157,11 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 		return false;
 	}
 
-	//loader methos
+	//loader methods
 	@Override
-	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-		return new MyCursorLoader(context); //MycursorLoader内部でDBからのCursorをセットしている
+	public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
+		MyCursorLoader cursorLoader = new MyCursorLoader(context); //MycursorLoader内部でDBからのCursorをセットしている
+		return cursorLoader;
 
 	}
 
@@ -184,6 +192,5 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 			noteClickListener.onNoteClicked(name);
 		}
 	};
-
 
 }

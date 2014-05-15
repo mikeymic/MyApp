@@ -13,14 +13,15 @@ import android.util.Log;
 import android.view.View;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.activity.listener.MyTabListener;
 import com.aizak.drawnote.controller.Bookshelf.OnNoteClickListener;
 import com.aizak.drawnote.controller.Note.OnActrionBarListener;
 import com.aizak.drawnote.controller.Note.OnOverlayListener;
 import com.aizak.drawnote.controller.Note.Units;
-import com.aizak.drawnote.service.OverlayService;
+import com.aizak.drawnote.controller.service.OverlayService;
+import com.aizak.drawnote.model.listener.MyTabListener;
 import com.aizak.drawnote.util.ActionBarUtil;
 import com.aizak.drawnote.util.C;
+import com.aizak.drawnote.util.FindViewByIdS;
 import com.aizak.drawnote.util.SerializeManager;
 import com.aizak.drawnote.view.DrawingView;
 import com.aizak.drawnote.view.MyNotification;
