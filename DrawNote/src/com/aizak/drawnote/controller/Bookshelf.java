@@ -32,15 +32,18 @@ import com.aizak.drawnote.util.FindViewByIdS;
 public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListener, LoaderCallbacks<Cursor> {
 
 	public interface OnNoteClickListener {
-		public void onNoteClicked(String name);
+		public void onNoteClicked(String name, int index);
 	}
 
-	private DBControl dbController;
 	private Context context;
 
+	private DBControl dbController;/*revi*/
+
+	//View
 	private GridView gridView;
 	private ListAdapter listAdapter;
 
+	//リスナー
 	private OnNoteClickListener noteClickListener;
 
 	/* (非 Javadoc)
@@ -49,6 +52,11 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 	@Override
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
+
+		if ((activity instanceof DrawNoteActivity) == false) {
+			throw new ClassCastException("activity が DrawNoteActivitydではありません.");
+		}
+
 		if ((activity instanceof OnNoteClickListener) == false) {
 			throw new ClassCastException("activity が OnNoteClickListener を実装していません.");
 		}
@@ -88,8 +96,8 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		Log.d("TEST", "BookShelfFragment#onItemSelected");
-		dbController.insertNewNote();
-		getLoaderManager().restartLoader(0, null, this);
+		dbController.insertNewNote(); //新規作成
+		getLoaderManager().restartLoader(0, null, this); //Loader更新
 		//listを更新
 		return super.onOptionsItemSelected(item);
 	}
@@ -103,6 +111,7 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 		return inflater.inflate(R.layout.fragment_bookshelf, container, false);
 	}
 
+	//+
 	/* (非 Javadoc)
 	 * @see android.support.v4.app.Fragment#onActivityCreated(android.os.Bundle)
 	 */
@@ -177,6 +186,7 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends View> T findViewByIdS(int id) {
 		return (T) getActivity().findViewById(id);
@@ -189,7 +199,7 @@ public class Bookshelf extends Fragment implements FindViewByIdS, OnTouchListene
 			TextView textName = (TextView) view.findViewById(R.id.row_note_name);
 			String name = textName.getText().toString();
 			Log.d("NAME#onItemClick", name);
-			noteClickListener.onNoteClicked(name);
+			noteClickListener.onNoteClicked(name, position); /*revi*/
 		}
 	};
 

@@ -44,6 +44,7 @@ import com.aizak.drawnote.view.MyPopupWindow;
  */
 public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 
+	//インターフェース
 	public interface OnOverlayListener {
 		public void onOverlayEvent();
 	}
@@ -95,26 +96,33 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 	}
 
 	private Context context;
+
+	//リスナー
 	private OnOverlayListener overlayListener;
 	private OnActrionBarListener actionBarListener;
 
+	//データベース
 	private DBControl db;
 	private final ArrayList<Line> saveLines = new ArrayList<>();
 
+	//ページ情報
 	private String cNoteName;
 	private int cPageIndex;
 	private int pageCount;
 
-	private DrawingView drawingView;
+	//View
+	public DrawingView drawingView;
 	private MyPopupWindow popupWindow;
 	private ColorPickerDialog mColorPickerDialog;
 	private Units units;
-
 	private Button pageListButton;
+
+	//デバッグ用
 	private TextView testName;
 	private TextView testIndex;
 	private TextView testCount;
 
+	//フラグ
 	private boolean isScreenMode = false;
 
 	/*
@@ -126,7 +134,6 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 	public void onAttach(Activity activity) {
 		super.onAttach(activity);
 		context = activity;
-		db = new DBControl(context);
 
 		if ((activity instanceof OnOverlayListener) == false) {
 			throw new ClassCastException(
@@ -175,11 +182,14 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 		super.onActivityCreated(savedInstanceState);
 		// getView().post(setDelegate);
 
+		db = new DBControl(context);
+
 		drawingView = findViewByIdS(R.id.drawing_view);
 
+		//ページ情報取得
 		cNoteName = getArguments().getString(C.DB.CLM_NOTES_NAME);
 		pageCount = db.getPageCount(cNoteName);
-		cPageIndex = 1;
+		cPageIndex = 1; //現在番号
 
 		getPage(cNoteName, cPageIndex);
 

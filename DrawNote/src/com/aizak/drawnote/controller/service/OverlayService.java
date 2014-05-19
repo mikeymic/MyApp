@@ -26,7 +26,7 @@ public class OverlayService extends Service {
 	private byte[] data;
 	private Bitmap bmp;
 
-	private WindowManager wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+	private WindowManager wm;
 	private View view;
 
 	/*
@@ -40,6 +40,7 @@ public class OverlayService extends Service {
 
 		setNotification();
 		createView(intent);
+		wm = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 		wm.addView(view, createLayoutParams());
 
 //		return START_REDELIVER_INTENT;
@@ -83,17 +84,17 @@ public class OverlayService extends Service {
 		Intent notificationintent = new Intent(Intent.ACTION_VIEW);//ダイアログ読んで終了？
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationintent, 0);
 
-		 //Notification notification = new Notification.Builder(this)
-		  Notification notification = new NotificationCompat.Builder(this)
-		   .setContentTitle("content title")
-		   .setContentText("content text")
-		   .setSmallIcon(R.drawable.ic_launcher)
-		   .setContentIntent(contentIntent)
-		   .build();
+		//Notification notification = new Notification.Builder(this)
+		Notification notification = new NotificationCompat.Builder(this)
+				.setContentTitle("content title")
+				.setContentText("content text")
+				.setSmallIcon(R.drawable.ic_launcher)
+				.setContentIntent(contentIntent)
+				.build();
 
-		  NotificationManager manager = (NotificationManager)getSystemService(Context.NOTIFICATION_SERVICE);
-		  manager.notify(2, notification);
-		  startForeground(2,notification);
+		NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+		manager.notify(2, notification);
+		startForeground(2, notification);
 	}
 
 	/**
