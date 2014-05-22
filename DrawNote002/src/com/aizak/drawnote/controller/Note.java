@@ -4,7 +4,6 @@ import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
@@ -34,7 +33,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.controller.service.DataSave2;
 import com.aizak.drawnote.model.Data;
 import com.aizak.drawnote.model.Line;
 import com.aizak.drawnote.model.database.DBControl;
@@ -369,26 +367,36 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener {
 		}
 	}
 
+//	public void savePage() {
+//		Intent intent = new Intent(getActivity(), DataSave2.class);
+//		intent.putExtra(C.DB.CLM_NOTES_NAME, cNoteName);
+//		intent.putExtra(C.DB.CLM_NOTES_PAGE_COUNT, pageCount);
+//		intent.putExtra(C.DB.CLM_PAGES_INDEX, cPageIndex);
+//		getActivity().startService(intent);
+//		intent.putExtra("save", true);
+//
+//	}
+
 	public void savePage() {
-		Intent intent = new Intent(getActivity(), DataSave2.class);
-		intent.putExtra(C.DB.CLM_NOTES_NAME, cNoteName);
-		intent.putExtra(C.DB.CLM_NOTES_PAGE_COUNT, pageCount);
-		intent.putExtra(C.DB.CLM_PAGES_INDEX, cPageIndex);
-		getActivity().startService(intent);
+		saveLines.clear();
+		saveLines.addAll(Data.savedLine);
+		saveLines.addAll(Data.editingLine);
+		Bitmap bitmap = Data.bitmap.copy(Config.ARGB_8888, true);
+		Bitmap thumb = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 4, bitmap.getHeight() / 4, false);
+		byte[] lines = SerializeManager.serializeData(saveLines);
+		byte[] image = SerializeManager.serializeData(bitmap);
+		byte[] thumbnail = SerializeManager.serializeData(thumb);
+		db.updatePage(cNoteName, cPageIndex, lines, image, thumbnail, pageCount);
 
 	}
 
-//	public void savePage() {
-//		saveLines.clear();
-//		saveLines.addAll(Data.savedLine);
-//		saveLines.addAll(Data.editingLine);
-//		Bitmap bitmap = Data.bitmap.copy(Config.ARGB_8888, true);
-//		Bitmap thumb = Bitmap.createScaledBitmap(bitmap, bitmap.getWidth() / 4, bitmap.getHeight() / 4, false);
-//		byte[] lines = SerializeManager.serializeData(saveLines);
-//		byte[] image = SerializeManager.serializeData(bitmap);
-//		byte[] thumbnail = SerializeManager.serializeData(thumb);
-//		db.updatePage(cNoteName, cPageIndex, lines, image, thumbnail, pageCount);
-//		
+//	public void getPage(String name, int index) {
+//		Intent intent = new Intent(getActivity(), DataSave2.class);
+//		intent.putExtra(C.DB.CLM_NOTES_NAME, cNoteName);
+//		intent.putExtra(C.DB.CLM_PAGES_INDEX, cPageIndex);
+//		intent.putExtra("save", false);
+//		getActivity().startService(intent);
+//
 //	}
 
 	@SuppressWarnings("unchecked")

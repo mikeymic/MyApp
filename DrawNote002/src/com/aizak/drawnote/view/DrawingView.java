@@ -53,7 +53,7 @@ public class DrawingView extends View implements OnBackgroundAlphaListener, OnCo
 
 	private final Paint scaledPaint = new Paint();
 	private Paint bmpFilter;
-	private Canvas bmpCanvas;
+	public static Canvas bmpCanvas;
 
 	// リスナー
 	// ScrollListener scrollListener;

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"
+	android:opacity="transparent" >
+
+	<item android:id="@+id/style_page_button_next">
+		<selector>
+			<item android:state_pressed="false">
+				<shape android:shape="rectangle" >
+					<corners
+						android:bottomLeftRadius="0dp"
+						android:bottomRightRadius="20dp"
+						android:radius="0dp"
+						android:topLeftRadius="0dp"
+						android:topRightRadius="20dp" />
+
+					<solid android:color="#665BEDBE" />
+
+					<stroke
+						android:dashWidth="1dp"
+						android:width="1dp"
+						android:color="#663CB8BE" />
+				</shape>
+			</item>
+			<item android:state_pressed="true">
+				<shape android:shape="rectangle" >
+					<corners
+						android:bottomLeftRadius="0dp"
+						android:bottomRightRadius="20dp"
+						android:radius="0dp"
+						android:topLeftRadius="0dp"
+						android:topRightRadius="20dp" />
+
+					<solid android:color="#660E88D3" />
+
+					<stroke
+						android:dashWidth="1dp"
+						android:width="1dp"
+						android:color="#663CB8BE" />
+				</shape>
+			</item>
+		</selector>
+	</item>
+
+</layer-list>

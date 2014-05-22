@@ -9,5 +9,4 @@ public class Data {
 	public static ArrayList<Line> savedLine;
 	public static ArrayList<Line> editingLine;
 
-
 }
