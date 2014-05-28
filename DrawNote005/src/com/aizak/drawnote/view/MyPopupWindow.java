@@ -12,7 +12,7 @@ public class MyPopupWindow extends PopupWindow {
 
 	public MyPopupWindow(Context context) {
 		super(context);
-		View contentView = LayoutInflater.from(context).inflate(R.layout.gridview_row_note, null, false);
+		View contentView = LayoutInflater.from(context).inflate(R.layout.row_note_list_thumbnail_gridview, null, false);
 		setWindowLayoutMode(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		setContentView(contentView);
 	}

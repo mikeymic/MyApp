@@ -16,8 +16,8 @@ public class MyNotificationBuilder extends NotificationCompat.Builder {
 		// NotificationBuilderのインスタンスを作成
 		setContentIntent(pi).setTicker("手書きメモ")// ステータスバーに表示されるテキスト
 				.setSmallIcon(R.drawable.ic_launcher)// アイコン
-				.setContentTitle("タイトル")// Notificationが開いたとき
-				.setContentText("メッセージ")// Notificationが開いたとき
+				.setContentTitle("手書きメモ（仮）")// Notificationが開いたとき
+				.setContentText("起動します")// Notificationが開いたとき
 				.setWhen(System.currentTimeMillis())// 通知するタイミング
 				.setPriority(Integer.MAX_VALUE);
 	}

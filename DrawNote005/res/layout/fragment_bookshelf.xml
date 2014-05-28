@@ -1,17 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/root_bookshelf"
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:background="#FF78BF87" >
-	<GridView
-		android:id="@+id/book_shelf_gridview"
-		android:layout_width="match_parent"
-		android:layout_height="match_parent"
-		android:layout_marginLeft="5dp"
-		android:horizontalSpacing="20dp"
-		android:overScrollMode="ifContentScrolls"
-		android:paddingLeft="20dp"
-		android:paddingRight="20dp"
-		android:verticalSpacing="20dp" >
-	</GridView>
+
 </FrameLayout>

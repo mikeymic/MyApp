@@ -25,10 +25,11 @@ import com.aizak.drawnote.controller.Note.OnAccessDataBaseListener;
 import com.aizak.drawnote.controller.Note.OnActrionBarListener;
 import com.aizak.drawnote.controller.Note.OnOverlayListener;
 import com.aizak.drawnote.controller.Note.Units;
-import com.aizak.drawnote.controller.service.IntentActivityService;
+import com.aizak.drawnote.controller.service.DeamonAcceleroIntentService;
 import com.aizak.drawnote.controller.service.OverlayService;
 import com.aizak.drawnote.model.Data;
 import com.aizak.drawnote.model.Line;
+import com.aizak.drawnote.model.PageInfo;
 import com.aizak.drawnote.model.database.DBControl;
 import com.aizak.drawnote.model.listener.AcceleroListener.OnAcceleroListener;
 import com.aizak.drawnote.model.listener.MyTabListener;
@@ -45,7 +46,6 @@ public class DrawNoteActivity extends ActionBarActivity implements
 
 	private final String password = "test-password";
 
-	// View
 	private MyPopupWindow popupWindow;
 
 	// Fagment
@@ -107,7 +107,7 @@ public class DrawNoteActivity extends ActionBarActivity implements
 	protected void onStart() {
 		super.onStart();
 		Log.d("TEST", "DrawNoteActivity#onStart");
-		stopService(new Intent(this, IntentActivityService.class));
+		stopService(new Intent(this, DeamonAcceleroIntentService.class));
 	}
 
 	/* (非 Javadoc)
@@ -128,9 +128,7 @@ public class DrawNoteActivity extends ActionBarActivity implements
 	protected void onStop() {
 		super.onStop();
 		Log.d("TEST", "DrawNoteActivity#onStop");
-		flg = true;
-		IntentActivityService.setFlg(flg);
-		Intent intent = new Intent(this, IntentActivityService.class);
+		Intent intent = new Intent(this, DeamonAcceleroIntentService.class);
 		startService(intent);
 		super.onStop();
 	}
@@ -284,11 +282,10 @@ public class DrawNoteActivity extends ActionBarActivity implements
 
 	//あともう一つ
 	@Override
-	public void OnAccessDataBase(boolean mode) {
-
+	public void OnAccessDataBase(boolean mode, PageInfo info) {
+		final PageInfo i = info;
 		if (mode == true) {
 			myThread.handler.post(new Runnable() {
-
 				@Override
 				public void run() {
 					DBControl db = new DBControl(DrawNoteActivity.this);
@@ -302,13 +299,14 @@ public class DrawNoteActivity extends ActionBarActivity implements
 					byte[] lines = SerializeManager.serializeData(saveLines);
 					byte[] image = SerializeManager.serializeData(bitmap);
 					byte[] thumbnail = SerializeManager.serializeData(thumb);
-					db.updatePage("test2", 1, lines, image, thumbnail, 1);
-
+					db.updatePage(i.noteName, i.currentPage, lines, image, thumbnail, 1);
+					db.close();
 				}
 			});
 		} else {
 			myThread.handler.post(new Runnable() {
 
+				@SuppressWarnings("unchecked")
 				@Override
 				public void run() {
 					DBControl db = new DBControl(DrawNoteActivity.this);
@@ -322,7 +320,7 @@ public class DrawNoteActivity extends ActionBarActivity implements
 						Data.canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR);
 					}
 
-					byte[][] stream = db.getPageWidthImage("test2", 1);
+					byte[][] stream = db.getPageWidthImage(i.noteName, i.currentPage);
 					if (stream != null) {
 						if (stream[0] != null) {
 							Data.savedLine.addAll((ArrayList<Line>) SerializeManager.deserializeData(stream[0]));
@@ -335,6 +333,7 @@ public class DrawNoteActivity extends ActionBarActivity implements
 							saveLines.clear();
 						}
 					}
+					db.close();
 				}
 			});
 

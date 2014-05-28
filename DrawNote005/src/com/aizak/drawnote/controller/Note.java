@@ -31,7 +31,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.aizak.drawnote.R;
-import com.aizak.drawnote.controller.service.IntentActivityService;
+import com.aizak.drawnote.controller.service.DeamonAcceleroIntentService;
 import com.aizak.drawnote.model.Data;
 import com.aizak.drawnote.model.PageInfo;
 import com.aizak.drawnote.model.database.DBControl;
@@ -44,12 +44,13 @@ import com.aizak.drawnote.view.MyPopupWindow;
 
 /**
  * @author 1218AND
- * 
+ *
  */
-public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Observer {
+public class Note extends Fragment implements FindViewByIdS, OnTouchListener,
+		Observer {
 
 	public interface OnAccessDataBaseListener {
-		void OnAccessDataBase(boolean mode);
+		void OnAccessDataBase(boolean mode, PageInfo pageInfo);
 		// true = save , false = load
 	}
 
@@ -63,6 +64,10 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 
 	public interface OnBackgroundAlphaListener {
 		public void onBackgroundAlphaChanged(int alpha);
+	}
+
+	public interface OnPenWidthListener {
+		void onPenWidthChanged(int penWidth);
 	}
 
 	public class Units {
@@ -80,8 +85,10 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 			pageControl = findViewByIdS(R.id.page_control);
 			pageListButton = findViewByIdS(R.id.note_button_page_list);
 			pageListButton.setOnClickListener(OnClickPagesUnit);
-			findViewByIdS(R.id.note_button_page_previous).setOnClickListener(OnClickPagesUnit);
-			findViewByIdS(R.id.note_button_page_next).setOnClickListener(OnClickPagesUnit);
+			findViewByIdS(R.id.note_button_page_previous).setOnClickListener(
+					OnClickPagesUnit);
+			findViewByIdS(R.id.note_button_page_next).setOnClickListener(
+					OnClickPagesUnit);
 		}
 
 		private void setToolControl() {
@@ -112,13 +119,16 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 	private OnActrionBarListener actionBarListener;
 	private OnBackgroundAlphaListener backgroundAlphaListener;
 	private OnAccessDataBaseListener accessDataBaseListener;
+	private OnPenWidthListener penWidthListener;
 
 	private DBControl db;
 
 	private PageInfo info;
 
 	private DrawingView drawingView;
-	private SeekBar seekBar;
+	private SeekBar alphaSeekBar;
+	private SeekBar penWidthSeekBar;
+
 	private MyPopupWindow popupWindow;
 	private ColorPickerDialog mColorPickerDialog;
 	private Units units;
@@ -155,7 +165,7 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 		actionBarListener = (OnActrionBarListener) activity;
 		accessDataBaseListener = (OnAccessDataBaseListener) activity;
 
-		ActionBarUtil.actionBarUpsideDown(activity);
+//		ActionBarUtil.actionBarUpsideDown(activity);
 
 	}
 
@@ -205,9 +215,12 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 
 		drawingView = findViewByIdS(R.id.drawing_view);
 		backgroundAlphaListener = drawingView;
+		penWidthListener = drawingView;
 
-		seekBar = findViewByIdS(R.id.alpha_seek_bar);
-		seekBar.setOnSeekBarChangeListener(backgroundAlphaChenged);
+		alphaSeekBar = findViewByIdS(R.id.alpha_seek_bar);
+		alphaSeekBar.setOnSeekBarChangeListener(backgroundAlphaChenged);
+		penWidthSeekBar = findViewByIdS(R.id.pen_width_seek_bar);
+		penWidthSeekBar.setOnSeekBarChangeListener(penWidthChenged);
 
 		// set tools
 		units = new Units();
@@ -216,11 +229,11 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 		setTest();// debug
 		popupWindow = new MyPopupWindow(context);
 
-		//表示の更新 Observale
+		// 表示の更新 Observale
 		String noteName = getArguments().getString(C.DB.CLM_NOTES_NAME);
 		info.updatePageInfo(noteName, db.getPageCount(noteName), 1);
-		//DBからをページを取得 Thread化
-		accessDataBaseListener.OnAccessDataBase(false);
+		// DBからをページを取得 Thread化
+		accessDataBaseListener.OnAccessDataBase(false, info);
 
 		drawingView.invalidate();
 	}
@@ -249,51 +262,56 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 		Log.d("TEST", "NoteFragment#onItemSelected");
 		int id = item.getItemId();
 		switch (id) {
-			case R.id.action_insert_new_page:
-				int index = info.currentPage;
-				if (index < info.pageCount) {
-					db.updatePageIndexWhenInsert(info.noteName, info.currentPage, info.pageCount);
-				} else {
-					index++;
-				}
-				db.insertNewPage(info.noteName, index);
-				// !!!sqliteにきちんと入ったか確認
-				if (index == 1000) {
-					return true;
-				}
-				info.setCurrentPage(index);
-				break;
-			case R.id.action_delete_page:
-				db.deletePage(info.noteName, info.currentPage);
-				if (info.currentPage < info.pageCount) {
-					db.updatePageIndexWhenDelete(info.noteName, info.currentPage, info.pageCount);
-				}
-				info.setCurrentPage(info.currentPage--);
-				break;
-			case R.id.action_undo:
-				drawingView.setDrawMode(C.DW.MODE_UNDO);
-				break;
-			case R.id.action_redo:
-				drawingView.setDrawMode(C.DW.MODE_REDO);
-				break;
-			case R.id.action_fullscreen:
-				// 後でアニメーションを設定
-				isScreenMode = actionBarListener.onActionBarVisiblityChenge(false, units);
-				break;
-			case R.id.action_overlay:
-				overlayListener.onOverlayEvent(); // activityへcallback
-				break;
-			case R.id.action_settings:
-				mColorPickerDialog.show();
-				break;
-			default:
-				return false;
+		case R.id.action_insert_new_page:
+			int index = info.currentPage;
+			if (index < info.pageCount) {
+				db.updatePageIndexWhenInsert(info.noteName, info.currentPage,
+						info.pageCount);
+			} else {
+				index++;
+			}
+			db.insertNewPage(info.noteName, index);
+			// !!!sqliteにきちんと入ったか確認
+			if (index == 1000) {
+				return true;
+			}
+			info.setCurrentPage(index);
+			break;
+		case R.id.action_delete_page:
+			db.deletePage(info.noteName, info.currentPage);
+			if (info.currentPage < info.pageCount) {
+				db.updatePageIndexWhenDelete(info.noteName, info.currentPage,
+						info.pageCount);
+			}
+			info.setCurrentPage(info.currentPage--);
+			break;
+		case R.id.action_undo:
+			drawingView.setDrawMode(C.DW.MODE_UNDO);
+			break;
+		case R.id.action_redo:
+			drawingView.setDrawMode(C.DW.MODE_REDO);
+			break;
+		case R.id.action_fullscreen:
+			// 後でアニメーションを設定
+			isScreenMode = actionBarListener.onActionBarVisiblityChenge(false,
+					units);
+			break;
+		case R.id.action_overlay:
+			overlayListener.onOverlayEvent(); // activityへcallback
+			break;
+		case R.id.action_settings:
+			mColorPickerDialog.show();
+			break;
+		default:
+			return false;
 		}
 		drawingView.invalidate();
 		return true;
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onDetach()
 	 */
 	@Override
@@ -314,13 +332,16 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 		if (isScreenMode) {
 			ActionBarUtil.setVisiblity(getActivity(), View.VISIBLE);
 
-			//加速度リスナーを解除
-			getActivity().stopService(new Intent(context, IntentActivityService.class));
+			// 加速度リスナーを解除
+			getActivity().stopService(
+					new Intent(context, DeamonAcceleroIntentService.class));
 
 		}
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onResume()
 	 */
 	@Override
@@ -329,7 +350,9 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 		super.onResume();
 	}
 
-	/* (非 Javadoc)
+	/*
+	 * (非 Javadoc)
+	 *
 	 * @see android.support.v4.app.Fragment#onDestroy()
 	 */
 	@Override
@@ -347,7 +370,7 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 	public void onPause() {
 		super.onPause();
 		Log.d("TEST", "NoteFragment#onPause");
-		//サービスに置き換え
+		// サービスに置き換え
 
 	}
 
@@ -375,8 +398,8 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 			isScreenMode = actionBarListener.onActionBarVisiblityChenge(false,
 					units);
 		}
-//		savePage();
-		accessDataBaseListener.OnAccessDataBase(true);
+		// savePage();
+		accessDataBaseListener.OnAccessDataBase(true, info);
 	}
 
 	@Override
@@ -393,20 +416,21 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 	/*-------------------- << Update Method >> --------------------*/
 	public void updatePageInformation() {
 		Log.d("TEST", "updatePageIndex()");
-//		getPage(cNoteName, cPageIndex);
+		// getPage(cNoteName, cPageIndex);
 		updatePageIndex();
 		drawingView.setDrawMode(C.DW.MODE_CLEAR);
 
-//		if (saveLines != null) {
-//			saveLines.clear();
-//		}
+		// if (saveLines != null) {
+		// saveLines.clear();
+		// }
 	}
 
 	public void updatePageIndex() {
 		Log.d("TEST", "updatePageIndex(");
 		info.pageCount = db.getPageCount(info.noteName);
 		pageListButton.setText(String.format(
-				getString(R.string.page_current_index), info.currentPage, info.pageCount));
+				getString(R.string.page_current_index), info.currentPage,
+				info.pageCount));
 
 	}
 
@@ -425,7 +449,8 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 	}
 
 	public void setColorPicker() {
-		mColorPickerDialog = new ColorPickerDialog(getActivity(), drawingView, Color.BLACK);
+		mColorPickerDialog = new ColorPickerDialog(getActivity(), drawingView,
+				Color.BLACK);
 	}
 
 	/*-------------------- << Observer Method >> --------------------*/
@@ -462,22 +487,22 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 			String msg = null;
 			int id = v.getId();
 			switch (id) {
-				case R.id.note_button_page_next:
-					if (info.currentPage == info.pageCount) {
-						msg = getString(R.string.msg_no_next_page);
-						break;
-					}
-					info.setCurrentPage(info.currentPage + 1);
-					;
+			case R.id.note_button_page_next:
+				if (info.currentPage == info.pageCount) {
+					msg = getString(R.string.msg_no_next_page);
 					break;
+				}
+				info.setCurrentPage(info.currentPage + 1);
+				;
+				break;
 
-				case R.id.note_button_page_previous:
-					if (info.currentPage == 1) {
-						msg = getString(R.string.msg_no_previous_page);
-						break;
-					}
-					info.setCurrentPage(info.currentPage - 1);
+			case R.id.note_button_page_previous:
+				if (info.currentPage == 1) {
+					msg = getString(R.string.msg_no_previous_page);
 					break;
+				}
+				info.setCurrentPage(info.currentPage - 1);
+				break;
 			}
 
 			if (msg != null) {
@@ -494,25 +519,25 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 			updateTestText();// debug
 			int id = v.getId();
 			switch (id) {
-				case R.id.tool_fullscreen:
-					isScreenMode = actionBarListener.onActionBarVisiblityChenge(
-							true, units);
-					break;
-				case R.id.tool_color:
+			case R.id.tool_fullscreen:
+				isScreenMode = actionBarListener.onActionBarVisiblityChenge(
+						true, units);
+				break;
+			case R.id.tool_color:
 
-					break;
-				case R.id.tool_editer:
+				break;
+			case R.id.tool_editer:
 
-					break;
-				case R.id.tool_pen:
+				break;
+			case R.id.tool_pen:
 
-					break;
-				case R.id.tool_shepe:
+				break;
+			case R.id.tool_shepe:
 
-					break;
+				break;
 
-				default:
-					break;
+			default:
+				break;
 			}
 			updateTestText();// debug
 		}
@@ -529,8 +554,32 @@ public class Note extends Fragment implements FindViewByIdS, OnTouchListener, Ob
 		}
 
 		@Override
-		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+		public void onProgressChanged(SeekBar seekBar, int progress,
+				boolean fromUser) {
 			backgroundAlphaListener.onBackgroundAlphaChanged(progress);
+		}
+	};
+
+	private final OnSeekBarChangeListener penWidthChenged = new OnSeekBarChangeListener() {
+
+		@Override
+		public void onStopTrackingTouch(SeekBar seekBar) {
+			Log.d("TEST", "onStopTrackingTouch");
+		}
+
+		@Override
+		public void onStartTrackingTouch(SeekBar seekBar) {
+			Log.d("TEST", "onStartTrackingTouch");
+		}
+
+		@Override
+		public void onProgressChanged(SeekBar seekBar, int progress,
+				boolean fromUser) {
+			if (progress < 1) {
+				progress = 1;
+			}
+			penWidthListener.onPenWidthChanged(progress);
+			Log.d("TEST", "onProgressChanged");
 		}
 	};
 

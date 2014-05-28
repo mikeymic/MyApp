@@ -25,59 +25,137 @@ public class ListAdapter extends CursorAdapter {
 		ImageView thumb;
 	}
 
+	public static final int THUMBNAIL_GRID_VIEW_MODE = 0;
+	public static final int DETAIL_LIST_VIEW_MODE = 1;
+	public static final int SIMPLE_LIST_VIEW_MODE = 2;
+	private int listMode;
+
 	private LayoutInflater mInflater;
 
 	public ListAdapter(Context context, Cursor c, boolean autoRequery) {
 		super(context, c, autoRequery);
-		 mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		mInflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+	}
+
+	public ListAdapter(Context context, Cursor c, boolean autoRequery,
+			int listMode) {
+		super(context, c, autoRequery);
+		mInflater = (LayoutInflater) context
+				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		this.listMode = listMode;
+	}
+
+	public void setListMode(int listMode) {
+		this.listMode = listMode;
+	}
+
+	@Override
+	public void bindView(View view, Context context, Cursor cursor) {
+		// Viewを再利用してデータをセットします
+		ViewHolder holder = (ViewHolder) view.getTag();
+
+		final int id = cursor.getInt(cursor
+				.getColumnIndexOrThrow(C.DB.CLM_PAGES_ID));
+		final String name = cursor.getString(cursor
+				.getColumnIndexOrThrow(C.DB.CLM_NOTES_NAME));
+		final String pCount = cursor.getString(cursor
+				.getColumnIndexOrThrow(C.DB.CLM_NOTES_PAGE_COUNT));
+
+		holder.id.setText(String.valueOf(id));
+		holder.name.setText(name);
+		holder.pCount.setText(context.getString(R.string.note_info_page_count,
+				pCount));
+
+		if (listMode == DETAIL_LIST_VIEW_MODE
+				|| listMode == THUMBNAIL_GRID_VIEW_MODE) {
+			final String cDate = cursor.getString(cursor
+					.getColumnIndexOrThrow(C.DB.CLM_NOTES_CREATE_DATE));
+			final String uDate = cursor.getString(cursor
+					.getColumnIndexOrThrow(C.DB.CLM_NOTES_UPDATE_DATE));
+
+			holder.cDate.setText(context.getString(
+					R.string.note_info_create_date, cDate));
+			holder.uDate.setText(context.getString(
+					R.string.note_info_update_date, uDate));
+
+		}
+
+		if (listMode == THUMBNAIL_GRID_VIEW_MODE) {
+			final byte[] b = cursor.getBlob(cursor
+					.getColumnIndexOrThrow(C.DB.CLM_NOTES_THUMBNAIL));
+
+			Bitmap thumb = null;
+			if (b != null) {
+				thumb = BitmapFactory.decodeByteArray(b, 0, b.length);
+			} else {
+				thumb = BitmapFactory.decodeResource(context.getResources(),
+						R.drawable.blank);
+			}
+
+			holder.thumb.setImageBitmap(thumb);
+		}
 
 	}
 
-    @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        // Viewを再利用してデータをセットします
-        ViewHolder holder = (ViewHolder) view.getTag();
+	@Override
+	public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
 
-        // Cursorからデータを取り出します
-        final int id = cursor.getInt(cursor.getColumnIndexOrThrow(C.DB.CLM_PAGES_ID));
-        final String name = cursor.getString(cursor.getColumnIndexOrThrow(C.DB.CLM_NOTES_NAME));
-        final String cDate = cursor.getString(cursor.getColumnIndexOrThrow(C.DB.CLM_NOTES_CREATE_DATE));
-        final String uDate = cursor.getString(cursor.getColumnIndexOrThrow(C.DB.CLM_NOTES_UPDATE_DATE));
-        final String pCount = cursor.getString(cursor.getColumnIndexOrThrow(C.DB.CLM_NOTES_PAGE_COUNT));
-        final byte[]b = cursor.getBlob(cursor.getColumnIndexOrThrow(C.DB.CLM_NOTES_THUMBNAIL));
-        Bitmap thumb = null;
-        if (b!= null) {
-        	thumb = BitmapFactory.decodeByteArray(b, 0, b.length);
-		} else {
-			thumb = BitmapFactory.decodeResource(context.getResources(), R.drawable.blank);
+		View view = new View(context);
+
+		switch (listMode) {
+		case THUMBNAIL_GRID_VIEW_MODE:
+			view = createGridView();
+			break;
+		case DETAIL_LIST_VIEW_MODE:
+			view = createDetailListView();
+			break;
+		case SIMPLE_LIST_VIEW_MODE:
+			view = createSimpleListView();
+			break;
 		}
+		return view;
+	}
 
-        // 画面にセットします
-        holder.id.setText(String.valueOf(id));
-        holder.name.setText(name);
-        holder.cDate.setText(context.getString(R.string.note_info_create_date, cDate));
-        holder.uDate.setText(context.getString(R.string.note_info_update_date, uDate));
-        holder.pCount.setText(context.getString(R.string.note_info_page_count, pCount));
-        holder.thumb.setImageBitmap(thumb);
-    }
+	private View createGridView() {
+		final View view = mInflater.inflate(
+				R.layout.row_note_list_thumbnail_gridview, null);
+		ViewHolder holder = new ViewHolder();
+		holder.id = (TextView) view.findViewById(R.id.row_note_index);
+		holder.name = (TextView) view.findViewById(R.id.row_note_name);
+		holder.cDate = (TextView) view.findViewById(R.id.row_note_create_date);
+		holder.uDate = (TextView) view.findViewById(R.id.row_note_update_date);
+		holder.pCount = (TextView) view.findViewById(R.id.row_note_page_count);
+		holder.thumb = (ImageView) view.findViewById(R.id.row_note_image);
+		view.setTag(holder);
+		return view;
+	}
 
-    @Override
-    public View newView(Context context, Cursor cursor, ViewGroup viewGroup) {
+	private View createDetailListView() {
+		final View view = mInflater.inflate(
+				R.layout.row_note_list_detail_listview, null);
+		ViewHolder holder = new ViewHolder();
+		holder.id = (TextView) view.findViewById(R.id.row_note_detail_id);
+		holder.name = (TextView) view.findViewById(R.id.row_note_detail_name);
+		holder.cDate = (TextView) view
+				.findViewById(R.id.row_note_detail_create_date);
+		holder.uDate = (TextView) view
+				.findViewById(R.id.row_note_detail_update_date);
+		holder.pCount = (TextView) view
+				.findViewById(R.id.row_note_detail_page_count);
+		view.setTag(holder);
+		return view;
+	}
 
-        // 新しくViewを作ります
-        final View view = mInflater.inflate(R.layout.gridview_row_note, null);
-        ViewHolder holder = new ViewHolder();
-        holder.id = (TextView) view.findViewById(R.id.row_note_index);
-        holder.name = (TextView) view.findViewById(R.id.row_note_name);
-        holder.cDate = (TextView) view.findViewById(R.id.row_note_create_date);
-        holder.uDate = (TextView) view.findViewById(R.id.row_note_update_date);
-        holder.pCount = (TextView) view.findViewById(R.id.row_note_page_count);
-        holder.thumb = (ImageView) view.findViewById(R.id.row_note_image);
-
-        view.setTag(holder);
-
-        return view;
-    }
-
+	private View createSimpleListView() {
+		final View view = mInflater.inflate(
+				R.layout.row_note_list_simple_listview, null);
+		ViewHolder holder = new ViewHolder();
+		holder.id = (TextView) view.findViewById(R.id.row_note_simple_id);
+		holder.name = (TextView) view.findViewById(R.id.row_note_simple_name);
+		holder.pCount = (TextView) view.findViewById(R.id.row_note_simple_page_count);
+		view.setTag(holder);
+		return view;
+	}
 
 }

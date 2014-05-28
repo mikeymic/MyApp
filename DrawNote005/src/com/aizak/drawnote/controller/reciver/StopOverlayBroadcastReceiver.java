@@ -1,4 +1,4 @@
-package com.aizak.drawnote.controller.service;
+package com.aizak.drawnote.controller.reciver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -6,9 +6,10 @@ import android.content.Intent;
 import android.widget.Toast;
 
 import com.aizak.drawnote.R;
+import com.aizak.drawnote.controller.service.OverlayService;
 import com.aizak.drawnote.util.C;
 
-public class MyBroadcastReceiver extends BroadcastReceiver {
+public class StopOverlayBroadcastReceiver extends BroadcastReceiver {
 
 	@Override
 	public void onReceive(Context context, Intent intent) {

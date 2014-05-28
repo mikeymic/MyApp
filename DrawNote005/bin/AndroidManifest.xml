@@ -3,10 +3,13 @@
 	package="com.aizak.drawnote"
 	android:versionCode="1"
 	android:versionName="1.0" >
+
 	<uses-sdk
 		android:minSdkVersion="9"
 		android:targetSdkVersion="19" />
+
 	<uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
 	<application
 		android:allowBackup="true"
 		android:icon="@drawable/ic_launcher"
@@ -18,14 +21,25 @@
 			android:label="@string/app_name" >
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
+
 				<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
+
 		<service android:name="com.aizak.drawnote.controller.service.OverlayService" >
 		</service>
 		<service android:name=".controller.service.DataSave" >
 		</service>
 		<service android:name=".controller.service.DataSave2" >
 		</service>
+		<service android:name=".controller.service.DeamonAcceleroIntentService" >
+		</service>
+
+		<receiver android:name=".controller.reciver.IntentFromAcceleroBroadcastReciver" >
+			<intent-filter>
+				<action android:name="com.aizak.drawnote.android.IntentAction.VIEW" />
+			</intent-filter>
+		</receiver>
 	</application>
+
 </manifest>

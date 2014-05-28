@@ -7,13 +7,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.widget.Toast;
 
 /**
  * 　ローパスとハイパスについて（例） ・ローパス： 　ー　計算方法 ・センサーの中央値 ・直近の値を少しずつ取得　（
- * 
+ *
  * ・ハイパス：直近の値 センサー値ーローパスフィルターの値
- * 
+ *
  **/
 
 public class AcceleroListener implements SensorEventListener {
@@ -21,8 +20,8 @@ public class AcceleroListener implements SensorEventListener {
 	private static float DETECT_ACCELERO = 11.0f;
 	private static int DETECT_ACCELERO_COUNT = 3;
 
-	private final SensorManager sensorManager;
-	private final Context context;
+	private SensorManager sensorManager;
+	private Context context;
 	private OnAcceleroListener acceleroListener;
 
 	private int counter;
@@ -36,11 +35,14 @@ public class AcceleroListener implements SensorEventListener {
 	@Override
 	public void onAccuracyChanged(Sensor sensor, int id) {
 	}
-
+int toastCounter = 0;
 	@Override
 	public void onSensorChanged(SensorEvent event) {
 		/** センサー検知値変更イベント **/
-
+		if (toastCounter == 0) {
+//			Toast.makeText(context, "onSensorChanged", Toast.LENGTH_SHORT).show();
+			toastCounter++;
+		}
 		/* 加速度センサーを検知しなかった場合 */
 		if (event.sensor.getType() != Sensor.TYPE_ACCELEROMETER) {
 			return; // 処理をしない
@@ -56,16 +58,16 @@ public class AcceleroListener implements SensorEventListener {
 		float z = Math.abs(event.values[2]);
 
 		// 加速度が所定値より大きいか判断
-		if ((x > DETECT_ACCELERO) || (y > DETECT_ACCELERO) || (z > DETECT_ACCELERO)) {
+		if (x > DETECT_ACCELERO || y > DETECT_ACCELERO || z > DETECT_ACCELERO) {
 			// 加速度の変化をカウント
 			counter++;
 			if (counter > DETECT_ACCELERO_COUNT) {// 3回カウントされたら（x,y,z）
-				Toast.makeText(
-						context,
-						"加速度検知\n" + "X = " + String.valueOf(x) + "\n" + "Y = "
-								+ String.valueOf(y) + "\n" + "Z = "
-								+ String.valueOf(z) + "\n", Toast.LENGTH_SHORT)
-						.show();
+//				Toast.makeText(
+//						context,
+//						"加速度検知\n" + "X = " + String.valueOf(x) + "\n" + "Y = "
+//								+ String.valueOf(y) + "\n" + "Z = "
+//								+ String.valueOf(z) + "\n", Toast.LENGTH_SHORT)
+//								.show();
 				if (acceleroListener != null) {
 					acceleroListener.onAccelero();
 				}
@@ -85,7 +87,7 @@ public class AcceleroListener implements SensorEventListener {
 	}
 
 	// activityの同メソッドから呼び出して、Activityのライフサイクルに組み込む
-	protected void onResume() {
+	public void onRegisterAcceleroListener() {
 		List<Sensor> list = sensorManager
 				.getSensorList(Sensor.TYPE_ACCELEROMETER);// 加速度センサーを取得
 		// 加速度センサーが一つもない場合は何もしない
@@ -97,7 +99,8 @@ public class AcceleroListener implements SensorEventListener {
 	}
 
 	// activityの同メソッドから呼び出して、Activityのライフサイクルに組み込む
-	protected void onPause() {
+	public void onUnRegisterAcceleroListener() {
 		sensorManager.unregisterListener(this);// リスナー解除　（処理低下、消費電力増加の防止のため）
 	}
+
 }

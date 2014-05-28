@@ -5,19 +5,16 @@ import android.view.ScaleGestureDetector.OnScaleGestureListener;
 
 public class ZoomListener implements OnScaleGestureListener {
 
-    public float scaleFactor = 1.0f;
-    private float oldFoucusX;
-    private float oldFoucusY;
-    private float currentFoucusX;
-    private float currentFoucusY;
+	public float zoom = 1.0f;
+	public float span;
+	public float focusX;
+	public float focusY;
     public boolean isZoom = false;
 
     private final ZoomState mState = new ZoomState();
 
     @Override
     public boolean onScaleBegin(ScaleGestureDetector detector) {
-	oldFoucusX = detector.getFocusX();
-	oldFoucusY = detector.getFocusY();
 	isZoom = true;
 
 	return true;
@@ -25,9 +22,16 @@ public class ZoomListener implements OnScaleGestureListener {
 
     @Override
     public boolean onScale(ScaleGestureDetector detector) {
-	scaleFactor *= detector.getScaleFactor();
+    	zoom *= detector.getScaleFactor();
+    	span = detector.getCurrentSpan();
+    	focusX = detector.getFocusX();
+    	focusY = detector.getFocusY();
+//    	mState.setZoom(mState.getZoom()* detector.getScaleFactor());
+//    	mState.setSpan(detector.getCurrentSpan());
+//    	mState.setFocusX(detector.getFocusX());
+//    	mState.setFocusY(detector.getFocusX());
 
-	mState.notifyObservers();
+	mState.notifyObservers(mState);
 	return true;
     }
 

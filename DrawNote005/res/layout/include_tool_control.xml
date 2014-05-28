@@ -3,33 +3,42 @@
 	android:layout_width="wrap_content"
 	android:layout_height="wrap_content" >
 
-	<Button
+	<ImageButton
 		android:id="@+id/tool_pen"
 		android:layout_width="30dp"
 		android:layout_height="30dp"
 		android:layout_marginBottom="30dp"
+		android:padding="4dp"
 		android:text="p"
 		android:textSize="12sp" />
 
-	<Button
+	<ImageButton
 		android:id="@+id/tool_fullscreen"
 		android:layout_width="60dp"
 		android:layout_height="60dp"
 		android:layout_below="@+id/tool_pen"
-		android:text="full"
+		android:adjustViewBounds="true"
+		android:background="@drawable/tool_button"
+		android:padding="4dp"
+		android:scaleType="centerInside"
+		android:src="@drawable/fullscreen"
 		android:textSize="12sp" />
 
-	<Button
+	<ImageButton
 		android:id="@+id/tool_color"
 		android:layout_width="30dp"
 		android:layout_height="30dp"
 		android:layout_above="@+id/tool_fullscreen"
 		android:layout_marginBottom="20dp"
 		android:layout_marginLeft="40dp"
-		android:text="c"
+		android:adjustViewBounds="true"
+		android:background="@drawable/tool_button"
+		android:padding="4dp"
+		android:scaleType="centerInside"
+		android:src="@drawable/paint"
 		android:textSize="12sp" />
 
-	<Button
+	<ImageButton
 		android:id="@+id/tool_shepe"
 		android:layout_width="30dp"
 		android:layout_height="30dp"
@@ -37,16 +46,18 @@
 		android:layout_marginBottom="40dp"
 		android:layout_marginLeft="20dp"
 		android:layout_toRightOf="@+id/tool_fullscreen"
+		android:padding="4dp"
 		android:text="s"
 		android:textSize="12sp" />
 
-	<Button
+	<ImageButton
 		android:id="@+id/tool_editer"
 		android:layout_width="30dp"
 		android:layout_height="30dp"
 		android:layout_alignBottom="@+id/tool_fullscreen"
 		android:layout_marginLeft="30dp"
 		android:layout_toRightOf="@+id/tool_fullscreen"
+		android:padding="4dp"
 		android:text="e"
 		android:textSize="12sp" />
 

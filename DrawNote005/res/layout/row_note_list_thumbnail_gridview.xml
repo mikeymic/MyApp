@@ -24,7 +24,7 @@
 		android:layout_below="@+id/row_note_name"
 		android:layout_centerInParent="true"
 		android:adjustViewBounds="true"
-		android:background="#FFFAFAFA"
+		android:background="@color/white"
 		android:padding="10dp"
 		android:src="@drawable/blank" />
 
@@ -34,7 +34,7 @@
 		android:layout_height="wrap_content"
 		android:layout_alignLeft="@+id/row_note_name"
 		android:layout_marginTop="20dp"
-		android:background="#AA5CB290"
+		android:background="@color/lime_green"
 		android:padding="10dp"
 		android:text="index"
 		android:textColor="#FFFFFFFF" />

@@ -6,38 +6,45 @@
 
 	<item
 		android:id="@+id/action_insert_new_page"
-		android:orderInCategory="200"
+		android:icon="@drawable/add"
+		android:orderInCategory="100"
 		android:title="@string/action_insert_new_page"
 		compat:showAsAction="always"/>
-
 	<item
 		android:id="@+id/action_delete_page"
+		android:icon="@drawable/delete"
 		android:orderInCategory="200"
 		android:title="@string/action_delete_page"
 		compat:showAsAction="always"/>
 	<item
 		android:id="@+id/action_undo"
-		android:orderInCategory="200"
+		android:icon="@drawable/undo"
+		android:orderInCategory="300"
 		android:title="@string/action_undo"
 		compat:showAsAction="always"/>
 	<item
 		android:id="@+id/action_redo"
-		android:orderInCategory="200"
+		android:icon="@drawable/redo"
+		android:orderInCategory="400"
 		android:title="@string/action_redo"
 		compat:showAsAction="always"/>
 	<item
-		android:id="@+id/action_fullscreen"
-		android:orderInCategory="200"
-		android:title="@string/action_fullscreen"
-		compat:showAsAction="always"/>
-	<item
 		android:id="@+id/action_overlay"
-		android:orderInCategory="100"
+		android:icon="@drawable/ovevrlay"
+		android:orderInCategory="500"
 		android:title="@string/action_overlay"
 		compat:showAsAction="always"/>
 	<item
+		android:id="@+id/action_fullscreen"
+		android:icon="@drawable/fullscreen"
+		android:orderInCategory="600"
+		android:title="@string/action_fullscreen"
+		compat:showAsAction="always"/>
+	<item
 		android:id="@+id/action_settings"
-		android:orderInCategory="100"
+		android:icon="@drawable/setting"
+		android:orderInCategory="700"
 		android:title="@string/action_settings"
 		compat:showAsAction="always"/>
+
 </menu>
